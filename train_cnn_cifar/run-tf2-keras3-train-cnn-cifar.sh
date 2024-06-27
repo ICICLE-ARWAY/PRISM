@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-#TODO: FIX JOB NAME
 #SBATCH --job-name=train-cnn-cifar-c10-fp32-e42-bs256-tensorflow-22.08-tf2-py3-1v100
 #SBATCH --account=ddp324
 #SBATCH --partition=gpu-debug
@@ -25,5 +24,5 @@ module list
 export KERAS_HOME="${LOCAL_SCRATCH_DIR}"
 printenv
 
-time -p singularity exec --bind "${KERAS_HOME}:/tmp" --nv "${SINGULARITY_CONTAINER_DIR}/pytorch/pytorch_24.03-py3.sif" \
-  python3 -u torch-train-cnn-cifar.py --classes 10 --precision fp32 --epochs 42 --batch_size 256
+time -p singularity exec --bind "${KERAS_HOME}:/tmp" --nv "${SINGULARITY_CONTAINER_DIR}/tensorflow/tensorflow_22.08-tf2-py3.sif" \
+  python3 -u tf2-keras3-train-cnn-cifar.py --classes 10 --precision fp32 --epochs 42 --batch_size 256

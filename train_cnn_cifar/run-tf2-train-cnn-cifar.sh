@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
+#CURRENTLY THE SAME AS THE KERAS3, IF WANT, CHANGE BACK TO KERAS2
 #SBATCH --job-name=train-cnn-cifar-c10-fp32-e42-bs256-tensorflow-22.08-tf2-py3-1v100
-#SBATCH --account=use300
+#SBATCH --account=ddp324
 #SBATCH --partition=gpu-debug
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=10

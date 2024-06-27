@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 #
 # Train a simple Convolutional Neural Network to classify CIFAR images.
-#CURRENTLY THE SAME AS THE KERAS3, IF WANT, CHANGE BACK TO KERAS2
 
 import argparse
 import os

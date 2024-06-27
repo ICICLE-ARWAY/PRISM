@@ -1,0 +1,10 @@
+name: tensorflow-gpu
+
+channels:
+  - defaults
+  - conda-forge
+
+dependencies:
+  - tensorflow=2.16.1=cuda120py312hee4d333_0
+  - jupyterlab
+  - opencv
