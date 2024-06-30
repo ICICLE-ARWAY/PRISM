@@ -9,6 +9,9 @@ dependencies:
   - pytorch
   - torchvision
   - torchaudio
+  - torchsummary
+  - torchmetrics
   - pytorch-cuda=12.1
   - jupyterlab
   - conda-forge::opencv
+  - lightning
