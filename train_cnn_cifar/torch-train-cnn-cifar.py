@@ -39,8 +39,8 @@ def create_datasets(classes, dtype):
     #TODO: find a way for CIFAR-20 and fine/coarse labels
     #NOTE: DOES NOT WORK WITH CIFAR100, "target out of bounds error"
     if classes == 100:
-        train_dataset = CIFAR10(root='./data', transform=ToTensor(), train=True, download=True)
-        test_dataset = CIFAR10(root='./data', transform=ToTensor(), train=False, download=True)
+        train_dataset = CIFAR100(root='./data', transform=ToTensor(), train=True, download=True)
+        test_dataset = CIFAR100(root='./data', transform=ToTensor(), train=False, download=True)
         # cifar_dataset = pl.LightningDataModule.from_datasets(train_dataset=CIFAR100(root='./data', train=True, transform=ToTensor(), download=True),
                                                             #  test_dataset=CIFAR100(root='./data', train=False, transform=ToTensor(), download=True))
     elif classes == 20:
