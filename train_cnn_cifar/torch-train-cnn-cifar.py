@@ -84,7 +84,6 @@ class CNN(pl.LightningModule):
         super(CNN, self).__init__()
 
         self.train_acc = Accuracy(num_classes=classes, task='MULTICLASS')
-        self.valid_acc = Accuracy(num_classes=classes, task='MULTICLASS')
         self.test_acc = Accuracy(num_classes=classes, task='MULTICLASS')
 
         self.cnn_block = nn.Sequential(
@@ -117,19 +116,6 @@ class CNN(pl.LightningModule):
     def on_train_epoch_end(self):
         self.log("train_acc", self.train_acc.compute())
         self.train_acc.reset()
-
-    def validation_step(self, batch, batch_idx):
-        x, y = batch
-        logits = self(x)
-        loss = nn.functional.cross_entropy(logits, y)
-        preds = torch.argmax(logits, dim=1)
-        self.valid_acc.update(preds, y)
-        self.log("valid_loss", loss, prog_bar=True)
-        return loss
-
-    def on_validation_epoch_end(self):
-        self.log("valid_acc", self.valid_acc.compute(), prog_bar=True)
-        self.valid_acc.reset()
 
     def test_step(self, batch, batch_idx):
         x, y = batch
@@ -176,12 +162,9 @@ def main():
     train_dataset, test_dataset = create_datasets(classes, dtype=tf_float)
 
     # Prepare the datasets for training and evaluation
-
-    # train_dataset = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    # test_dataset = DataLoader(test_dataset, batch_size=batch_size)
-
     # TODO: add num_workers to args
-    cifar_dataset = pl.LightningDataModule.from_datasets(train_dataset=train_dataset, test_dataset=test_dataset, num_workers=0, batch_size=batch_size)
+    cifar_dataset = pl.LightningDataModule.from_datasets(train_dataset=train_dataset, num_workers=7, batch_size=batch_size)
+    test_dataset = DataLoader(test_dataset, batch_size=batch_size)
 
     # Create model
     model = CNN(classes)
@@ -193,7 +176,7 @@ def main():
     trainer = pl.Trainer(max_epochs=epochs, accelerator="gpu", devices=1)
     trainer.fit(model, datamodule=cifar_dataset)
     
-    # trainer.test(model, test_dataloaders = test_dataset)
+    trainer.test(model, test_dataloaders = test_dataset)
 
     x = torch.randn(batch_size, 3, 32, 32, requires_grad=True)
     torch.onnx.export(model, x, "lightning_logs/version_" + str(trainer.logger.version) + "/model.onnx", export_params=True, opset_version=10, input_names=['input'], output_names=['output'], dynamic_axes={'input' : {0 : 'batch_size'}, 'output' : {0 : 'batch_size'}})
