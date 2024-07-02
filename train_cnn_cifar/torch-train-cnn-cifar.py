@@ -3,9 +3,11 @@ import argparse
 import os
 import sys
 import time
+from typing import Any, Optional
 
 import torch
 import torchvision.transforms
+from lightning.pytorch.utilities.types import STEP_OUTPUT
 from torch import nn
 from torchvision.datasets import CIFAR100, CIFAR10
 from torchvision.transforms import ToTensor
@@ -28,7 +30,7 @@ def get_command_arguments():
     parser.add_argument('-p', '--precision', type=str, default='fp32', choices=['bf16', 'fp16', 'fp32', 'fp64'], help='floating-point precision')
     parser.add_argument('-e', '--epochs', type=int, default=42, help='number of training epochs')
     parser.add_argument('-b', '--batch_size', type=int, default=256, help='batch size')
-    parser.add_argument('-a', '--accelerator',type=str, default='gpu', choices=['cpu', 'gpu', 'hpu', 'tpu'], help='accelerator')
+    parser.add_argument('-a', '--accelerator', type=str, default='gpu', choices=['cpu', 'gpu', 'hpu', 'tpu'], help='accelerator')
 
     args = parser.parse_args()
     return args
@@ -86,6 +88,7 @@ class CNN(pl.LightningModule):
 
         self.train_acc = Accuracy(num_classes=classes, task='MULTICLASS')
         self.test_acc = Accuracy(num_classes=classes, task='MULTICLASS')
+        self.val_acc = Accuracy(num_classes=classes, task='MULTICLASS')
 
         self.cnn_block = nn.Sequential(
             nn.Conv2d(in_channels=3, out_channels=32, kernel_size=3),
@@ -128,8 +131,17 @@ class CNN(pl.LightningModule):
         self.log("test_acc", self.test_acc.compute(), prog_bar=True)
         return loss
 
+    def validation_step(self, batch, batch_idx):
+        x, y = batch
+        logits = self(x)
+        loss = nn.functional.cross_entropy(logits, y)
+        preds = torch.argmax(logits, dim=1)
+        self.val_acc.update(preds, y)
+        self.log("val_loss", loss, prog_bar=True)
+        self.log("val_acc", self.val_acc.compute(), prog_bar=True)
+
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=0.001)
+        optimizer = torch.optim.AdamW(self.parameters(), lr=0.001)
         return optimizer
 
 #%%
@@ -177,7 +189,7 @@ def main():
     trainer = pl.Trainer(max_epochs=epochs, accelerator=args.accelerator, devices=1)
     trainer.fit(model, datamodule=cifar_dataset)
     
-    trainer.test(model, test_dataloaders = test_dataset)
+    trainer.test(model, dataloaders=test_dataset, verbose=True)
 
     x = torch.randn(batch_size, 3, 32, 32, requires_grad=True)
     torch.onnx.export(model, x, "lightning_logs/version_" + str(trainer.logger.version) + "/model.onnx", export_params=True, opset_version=10, input_names=['input'], output_names=['output'], dynamic_axes={'input' : {0 : 'batch_size'}, 'output' : {0 : 'batch_size'}})
