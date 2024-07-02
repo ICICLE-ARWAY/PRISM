@@ -28,6 +28,7 @@ def get_command_arguments():
     parser.add_argument('-p', '--precision', type=str, default='fp32', choices=['bf16', 'fp16', 'fp32', 'fp64'], help='floating-point precision')
     parser.add_argument('-e', '--epochs', type=int, default=42, help='number of training epochs')
     parser.add_argument('-b', '--batch_size', type=int, default=256, help='batch size')
+    parser.add_argument('-a', '--accelerator',type=str, default='gpu', choices=['cpu', 'gpu', 'hpu', 'tpu'], help='accelerator')
 
     args = parser.parse_args()
     return args
@@ -173,7 +174,7 @@ def main():
     torchinfo.summary(model, input_size=(batch_size, 3, 32, 32))
 
     # # Train the model on the dataset || TODO: make the accel option and devices / nodes an arg
-    trainer = pl.Trainer(max_epochs=epochs, accelerator="gpu", devices=1)
+    trainer = pl.Trainer(max_epochs=epochs, accelerator=args.accelerator, devices=1)
     trainer.fit(model, datamodule=cifar_dataset)
     
     trainer.test(model, test_dataloaders = test_dataset)
