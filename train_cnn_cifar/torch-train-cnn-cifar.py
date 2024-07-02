@@ -126,7 +126,8 @@ class CNN(pl.LightningModule):
         loss = nn.functional.cross_entropy(logits, y)
         preds = torch.argmax(logits, dim=1)
         self.train_acc.update(preds, y)
-        self.log("train_loss", loss, prog_bar=True)
+        self.log("train_loss", loss, prog_bar=True, on_step=False, on_epoch=True)
+        self.log('train_acc', self.train_acc.compute(), prog_bar=True, on_step=False, on_epoch=True)
         return loss
 
     def on_train_epoch_end(self):
@@ -145,12 +146,12 @@ class CNN(pl.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         x, y = batch
-        logits = self(x)
-        loss = nn.functional.cross_entropy(logits, y)
-        preds = torch.argmax(logits, dim=1)
+        y_hat = self(x)
+        loss = torch.cross_entropy(y_hat, y)
+        preds = torch.argmax(y_hat, dim=1)
         self.val_acc.update(preds, y)
         self.log("val_loss", loss, prog_bar=True)
-        self.log("val_acc", self.val_acc.compute(), prog_bar=True)
+        self.log("val_acc", self.val_acc.compute(), prog_bar=True, on_epoch=True, on_step=False)
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.parameters(), lr=0.001)
