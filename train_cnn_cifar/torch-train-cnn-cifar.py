@@ -114,9 +114,8 @@ class CNN(pl.LightningModule):
             nn.MaxPool2d(kernel_size=2, stride=2),
             nn.AdaptiveAvgPool2d((1, 1)),
             nn.Flatten(),
+            nn.Linear(512, classes)
         )
-
-        self.fc = nn.Linear(512, classes)
 
     def forward(self, x):
         return self.cnn_block(x)
