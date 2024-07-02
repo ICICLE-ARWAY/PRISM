@@ -176,7 +176,7 @@ def main():
 
     # Prepare the datasets for training and evaluation
     # TODO: add num_workers to args
-    cifar_dataset = pl.LightningDataModule.from_datasets(train_dataset=train_dataset, num_workers=7, batch_size=batch_size)
+    cifar_dataset = pl.LightningDataModule.from_datasets(train_dataset=train_dataset, num_workers=0, batch_size=batch_size)
     test_dataset = DataLoader(test_dataset, batch_size=batch_size)
 
     # Create model
