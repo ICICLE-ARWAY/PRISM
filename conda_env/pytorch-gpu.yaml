@@ -6,12 +6,18 @@ channels:
   - nvidia
 
 dependencies:
-  - pytorch
-  - torchvision
-  - torchaudio
-  - torchsummary
+  - python == 3.11.7
+  - pytorch == 2.3.1
+  - torchvision == 0.18.1
+  - torchaudio == 2.3.1
+  - torchinfo
   - torchmetrics
   - pytorch-cuda=12.1
   - jupyterlab
   - conda-forge::opencv
   - lightning
+  - pillow
+  - onnx
+  - onnxruntime
+  - pip:
+      - --extra-index-url https://download.pytorch.org/whl/cu118

@@ -5,11 +5,12 @@ import sys
 import time
 
 import torch
+import torchvision.transforms
 from torch import nn
 from torchvision.datasets import CIFAR100, CIFAR10
 from torchvision.transforms import ToTensor
 from torch.utils.data import TensorDataset, DataLoader
-import torchsummary
+import torchinfo
 from torchmetrics import Accuracy
 import lightning as pl
 import numpy as np
@@ -50,7 +51,7 @@ def create_datasets(classes, dtype):
         train_dataset = CIFAR10(root='./data', transform=ToTensor(), train=True, download=True)
         test_dataset = CIFAR10(root='./data', transform=ToTensor(), train=False, download=True)
 
-    #Converting to respective tensors for analysis and building datasets
+    # Converting to respective tensors for analysis and building datasets
     x_train, y_train = np.array(train_dataset.data), np.array(train_dataset.targets)
     x_test, y_test = np.array(test_dataset.data), np.array(test_dataset.targets)
 
@@ -153,39 +154,49 @@ def main():
 
     # Set internal variables from input variables and command-line arguments
     classes = args.classes
-    if args.precision == 'bf16':
-        tf_float = torch.bfloat16
-    elif args.precision == 'fp16':
-        tf_float = torch.float16
-    elif args.precision == 'fp64':
-        tf_float = torch.float64
-    else: # args.precision == 'fp32'
-        tf_float = torch.float32
+    match args.precision:
+        case 'bf16': tf_float = torch.bfloat16
+        case 'fp16': tf_float = torch.float16
+        case 'fp64': tf_float = torch.float64
+        case 'fp32': tf_float = torch.float32
+        case _: raise Exception(
+                "Provided precision string: " +
+                args.precision +
+                " is not within the accepted set of values: ['bf16', 'fp16', 'fp64', 'fp32']"
+            )
+
     epochs = args.epochs
     batch_size = args.batch_size
+
+    # increase speed by optimizing fp32 matmul | TODO: MAKE THIS AN ARG
+    if torch.cuda.device_count() > 0:
+        torch.set_float32_matmul_precision('high')
 
     # Create training and test datasets
     train_dataset, test_dataset = create_datasets(classes, dtype=tf_float)
 
     # Prepare the datasets for training and evaluation
-    #TODO: cache
-    train_dataset = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    test_dataset = DataLoader(test_dataset, batch_size=batch_size)
-    cifar_dataset = pl.LightningDataModule.from_datasets(train_dataset=train_dataset, test_dataset=test_dataset)
+
+    # train_dataset = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    # test_dataset = DataLoader(test_dataset, batch_size=batch_size)
+
+    # TODO: add num_workers to args
+    cifar_dataset = pl.LightningDataModule.from_datasets(train_dataset=train_dataset, test_dataset=test_dataset, num_workers=0, batch_size=batch_size)
 
     # Create model
     model = CNN(classes)
 
     # Print summary of the model's network architecture
-    # torchsummary.summary(model, input_size=(3, 32, 32))
+    torchinfo.summary(model, input_size=(batch_size, 3, 32, 32))
 
-    # # Train the model on the dataset
-    trainer = pl.Trainer(max_epochs=epochs)
+    # # Train the model on the dataset || TODO: make the accel option and devices / nodes an arg
+    trainer = pl.Trainer(max_epochs=epochs, accelerator="gpu", devices=1)
     trainer.fit(model, datamodule=cifar_dataset)
     
-    # # trainer.test(model, test_dataloaders = test_dataset)
+    # trainer.test(model, test_dataloaders = test_dataset)
 
-    # trainer.save_checkpoint('saved_model_'+"""os.environ['SLURM_JOB_ID']""" "hello" + ".ckpt")
+    x = torch.randn(batch_size, 3, 32, 32, requires_grad=True)
+    torch.onnx.export(model, x, "lightning_logs/version_" + str(trainer.logger.version) + "/model.onnx", export_params=True, opset_version=10, input_names=['input'], output_names=['output'], dynamic_axes={'input' : {0 : 'batch_size'}, 'output' : {0 : 'batch_size'}})
 
     return 0
 
