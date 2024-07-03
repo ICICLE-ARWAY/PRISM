@@ -32,7 +32,6 @@ def get_command_arguments():
     parser.add_argument('-b', '--batch_size', type=int, default=256, help='batch size')
     parser.add_argument('-a', '--accelerator', type=str, default='auto', choices=['auto', 'cpu', 'gpu', 'hpu', 'tpu'], help='accelerator')
     parser.add_argument('-w', '--num_workers', type=int, default=0, help='number of workers')
-    parser.add_argument('-l', '--learning_rate', type=float, default=0.001, help='learning rate')
 
     args = parser.parse_args()
     return args
@@ -85,58 +84,41 @@ def create_datasets(classes, dtype):
 
 #%%
 class CNN(pl.LightningModule):
-    def __init__(self, classes, args):
+    def __init__(self, classes):
         super(CNN, self).__init__()
 
         self.train_acc = Accuracy(num_classes=classes, task='MULTICLASS')
         self.test_acc = Accuracy(num_classes=classes, task='MULTICLASS')
         self.val_acc = Accuracy(num_classes=classes, task='MULTICLASS')
 
-        self.args = args
-
         self.cnn_block = nn.Sequential(
             nn.Conv2d(3, 64, kernel_size=3, padding=1),
             nn.BatchNorm2d(64),
             nn.ReLU(),
-            nn.Conv2d(64, 256, kernel_size=3, padding=1),
-            nn.BatchNorm2d(256),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2),
-
-            # Bottleneck
-            nn.Conv2d(256, 256, kernel_size=1, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(256, 256, kernel_size=3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(256, 256, kernel_size=1, padding=1),
-            nn.ReLU(),
-
-            nn.Conv2d(256, 128, kernel_size=3, padding=1),
+            nn.Conv2d(64, 128, kernel_size=3, padding=1),
             nn.BatchNorm2d(128),
             nn.ReLU(),
-            nn.Dropout(0.5),
-
-            # Bottleneck
-            nn.Conv2d(128, 128, kernel_size=1, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(128, 128, kernel_size=3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(128, 128, kernel_size=1, padding=1),
-            nn.ReLU(),
-
-            nn.Conv2d(128, 64, kernel_size=3, padding=1),
-            nn.BatchNorm2d(64),
-            nn.ReLU(),
-            nn.Dropout(0.5),
             nn.MaxPool2d(kernel_size=2, stride=2),
-
-            nn.Conv2d(64, 64, kernel_size=3, padding=1),
-            nn.BatchNorm2d(64),
+            nn.Conv2d(128, 128, kernel_size=3, padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+            nn.Dropout(0.3),
+            nn.Conv2d(128, 128, kernel_size=3, padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.Dropout(0.3),
+            nn.Conv2d(128, 128, kernel_size=3, padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+            nn.Dropout(0.3),
+            nn.Conv2d(128, 128, kernel_size=3, padding=1),
+            nn.BatchNorm2d(128),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
             nn.AdaptiveAvgPool2d((1, 1)),
             nn.Flatten(),
-            nn.Linear(64, classes)
+            nn.Linear(128, classes)
         )
 
     def forward(self, x):
@@ -176,7 +158,7 @@ class CNN(pl.LightningModule):
         self.log("val_acc", self.val_acc.compute(), prog_bar=True, on_epoch=True, on_step=False)
 
     def configure_optimizers(self):
-        optimizer = torch.optim.AdamW(self.parameters(), lr=self.args.learning_rate)
+        optimizer = torch.optim.AdamW(self.parameters(), lr=0.001)
         return optimizer
 
 #%%
@@ -213,7 +195,7 @@ def main():
     cifar_datamodule = pl.LightningDataModule.from_datasets(train_dataset=train_dataset, num_workers=args.num_workers, batch_size=batch_size, val_dataset=test_dataset, test_dataset=test_dataset)
 
     # Create model
-    model = CNN(classes, args)
+    model = CNN(classes)
 
     # Print summary of the model's network architecture
     torchinfo.summary(model, input_size=(batch_size, 3, 32, 32))
