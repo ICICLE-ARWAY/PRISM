@@ -32,6 +32,7 @@ def get_command_arguments():
     parser.add_argument('-b', '--batch_size', type=int, default=256, help='batch size')
     parser.add_argument('-a', '--accelerator', type=str, default='auto', choices=['auto', 'cpu', 'gpu', 'hpu', 'tpu'], help='accelerator')
     parser.add_argument('-w', '--num_workers', type=int, default=0, help='number of workers')
+    parser.add_argument('-l', '--learning_rate', type=int, default=0.001, help='learning rate')
 
     args = parser.parse_args()
     return args
@@ -84,12 +85,14 @@ def create_datasets(classes, dtype):
 
 #%%
 class CNN(pl.LightningModule):
-    def __init__(self, classes):
+    def __init__(self, classes, args):
         super(CNN, self).__init__()
 
         self.train_acc = Accuracy(num_classes=classes, task='MULTICLASS')
         self.test_acc = Accuracy(num_classes=classes, task='MULTICLASS')
         self.val_acc = Accuracy(num_classes=classes, task='MULTICLASS')
+
+        self.args = args
 
         self.cnn_block = nn.Sequential(
             nn.Conv2d(3, 64, kernel_size=3, padding=1),
@@ -173,7 +176,7 @@ class CNN(pl.LightningModule):
         self.log("val_acc", self.val_acc.compute(), prog_bar=True, on_epoch=True, on_step=False)
 
     def configure_optimizers(self):
-        optimizer = torch.optim.AdamW(self.parameters(), lr=0.001)
+        optimizer = torch.optim.AdamW(self.parameters(), lr=self.args.learning_rate)
         return optimizer
 
 #%%
@@ -210,7 +213,7 @@ def main():
     cifar_datamodule = pl.LightningDataModule.from_datasets(train_dataset=train_dataset, num_workers=args.num_workers, batch_size=batch_size, val_dataset=test_dataset, test_dataset=test_dataset)
 
     # Create model
-    model = CNN(classes)
+    model = CNN(classes, args)
 
     # Print summary of the model's network architecture
     torchinfo.summary(model, input_size=(batch_size, 3, 32, 32))
