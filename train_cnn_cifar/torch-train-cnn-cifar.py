@@ -108,21 +108,17 @@ class CNN(pl.LightningModule):
             nn.Conv2d(128, 128, kernel_size=1, padding=1),
             nn.ReLU(),
 
-            # Dropout
             nn.Conv2d(128, 128, kernel_size=3, padding=1),
             nn.ReLU(),
-            nn.Dropout(0.4),
-            nn.Conv2d(128, 128, kernel_size=3, padding=1),
-            nn.BatchNorm2d(128),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Dropout(0.4),
+            nn.Dropout(0.5),
             nn.Conv2d(128, 128, kernel_size=3, padding=1),
             nn.BatchNorm2d(128),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Dropout(0.4),
-
+            nn.Conv2d(128, 128, kernel_size=3, padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2),
 
             nn.Conv2d(128, 128, kernel_size=3, padding=1),
             nn.BatchNorm2d(128),
