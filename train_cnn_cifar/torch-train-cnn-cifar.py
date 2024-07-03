@@ -200,7 +200,7 @@ def main():
 
     # # Train the model on the dataset || TODO: make the accel option and devices / nodes an arg
     trainer = pl.Trainer(max_epochs=epochs, accelerator=args.accelerator)
-    trainer.fit(model, datamodule=cifar_dataset)
+    trainer.fit(model, datamodule=cifar_dataset, val_dataloaders=test_dataset)
     
     trainer.test(model, dataloaders=test_dataset, verbose=True)
 
