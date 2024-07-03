@@ -30,7 +30,8 @@ def get_command_arguments():
     parser.add_argument('-p', '--precision', type=str, default='fp32', choices=['bf16', 'fp16', 'fp32', 'fp64'], help='floating-point precision')
     parser.add_argument('-e', '--epochs', type=int, default=42, help='number of training epochs')
     parser.add_argument('-b', '--batch_size', type=int, default=256, help='batch size')
-    parser.add_argument('-a', '--accelerator', type=str, default='gpu', choices=['cpu', 'gpu', 'hpu', 'tpu'], help='accelerator')
+    parser.add_argument('-a', '--accelerator', type=str, default='auto', choices=['auto', 'cpu', 'gpu', 'hpu', 'tpu'], help='accelerator')
+    parser.add_argument('-w', '--num_workers', type=int, default=0, help='number of workers')
 
     args = parser.parse_args()
     return args
@@ -188,8 +189,7 @@ def main():
     train_dataset, test_dataset = create_datasets(classes, dtype=tf_float)
 
     # Prepare the datasets for training and evaluation
-    # TODO: add num_workers to args
-    cifar_dataset = pl.LightningDataModule.from_datasets(train_dataset=train_dataset, num_workers=0, batch_size=batch_size)
+    cifar_dataset = pl.LightningDataModule.from_datasets(train_dataset=train_dataset, num_workers=args.num_workers, batch_size=batch_size)
     test_dataset = DataLoader(test_dataset, batch_size=batch_size)
 
     # Create model
@@ -199,7 +199,7 @@ def main():
     torchinfo.summary(model, input_size=(batch_size, 3, 32, 32))
 
     # # Train the model on the dataset || TODO: make the accel option and devices / nodes an arg
-    trainer = pl.Trainer(max_epochs=epochs, accelerator=args.accelerator, devices=1)
+    trainer = pl.Trainer(max_epochs=epochs, accelerator=args.accelerator)
     trainer.fit(model, datamodule=cifar_dataset)
     
     trainer.test(model, dataloaders=test_dataset, verbose=True)
