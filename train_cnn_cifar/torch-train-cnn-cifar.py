@@ -32,6 +32,8 @@ def get_command_arguments():
     parser.add_argument('-b', '--batch_size', type=int, default=256, help='batch size')
     parser.add_argument('-a', '--accelerator', type=str, default='auto', choices=['auto', 'cpu', 'gpu', 'hpu', 'tpu'], help='accelerator')
     parser.add_argument('-w', '--num_workers', type=int, default=0, help='number of workers')
+    parser.add_argument('-l', '--learning_rate', type=float, default=0.001, help='learning rate [TEMP]')
+    parser.add_argument('-d', '--weight_decay', type=float, default=0.01, help='weight decay [TEMP]')
 
     args = parser.parse_args()
     return args
