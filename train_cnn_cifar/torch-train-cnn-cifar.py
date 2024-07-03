@@ -148,7 +148,7 @@ class CNN(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         x, y = batch
         y_hat = self(x)
-        loss = torch.cross_entropy(y_hat, y)
+        loss = nn.functional.cross_entropy(y_hat, y)
         preds = torch.argmax(y_hat, dim=1)
         self.val_acc.update(preds, y)
         self.log("val_loss", loss, prog_bar=True)
@@ -189,8 +189,7 @@ def main():
     train_dataset, test_dataset = create_datasets(classes, dtype=tf_float)
 
     # Prepare the datasets for training and evaluation
-    cifar_dataset = pl.LightningDataModule.from_datasets(train_dataset=train_dataset, num_workers=args.num_workers, batch_size=batch_size)
-    test_dataset = DataLoader(test_dataset, batch_size=batch_size)
+    cifar_datamodule = pl.LightningDataModule.from_datasets(train_dataset=train_dataset, num_workers=args.num_workers, batch_size=batch_size, val_dataset=test_dataset)
 
     # Create model
     model = CNN(classes)
@@ -200,7 +199,7 @@ def main():
 
     # # Train the model on the dataset || TODO: make the accel option and devices / nodes an arg
     trainer = pl.Trainer(max_epochs=epochs, accelerator=args.accelerator)
-    trainer.fit(model, datamodule=cifar_dataset, val_dataloaders=test_dataset)
+    trainer.fit(model, datamodule=cifar_datamodule)
     
     trainer.test(model, dataloaders=test_dataset, verbose=True)
 
