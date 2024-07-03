@@ -173,7 +173,7 @@ class CNN(pl.LightningModule):
         self.log("val_acc", self.val_acc.compute(), prog_bar=True, on_epoch=True, on_step=False)
 
     def configure_optimizers(self):
-        optimizer = torch.optim.AdamW(self.parameters(), lr=0.01)
+        optimizer = torch.optim.AdamW(self.parameters(), lr=0.001)
         return optimizer
 
 #%%
