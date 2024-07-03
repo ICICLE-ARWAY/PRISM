@@ -112,6 +112,15 @@ class CNN(pl.LightningModule):
             nn.BatchNorm2d(128),
             nn.ReLU(),
             nn.Dropout(0.5),
+
+            # Bottleneck
+            nn.Conv2d(128, 128, kernel_size=1, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(128, 128, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(128, 128, kernel_size=1, padding=1),
+            nn.ReLU(),
+
             nn.Conv2d(128, 64, kernel_size=3, padding=1),
             nn.BatchNorm2d(64),
             nn.ReLU(),
@@ -164,7 +173,7 @@ class CNN(pl.LightningModule):
         self.log("val_acc", self.val_acc.compute(), prog_bar=True, on_epoch=True, on_step=False)
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=0.001)
+        optimizer = torch.optim.AdamW(self.parameters(), lr=0.01)
         return optimizer
 
 #%%
