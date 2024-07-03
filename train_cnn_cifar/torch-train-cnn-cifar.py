@@ -96,15 +96,15 @@ class CNN(pl.LightningModule):
             nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.Conv2d(64, 512, kernel_size=3, padding=1),
-            nn.BatchNorm2d(128),
+            nn.BatchNorm2d(512),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
             nn.Conv2d(512, 512, kernel_size=3, padding=1),
-            nn.BatchNorm2d(256),
+            nn.BatchNorm2d(512),
             nn.ReLU(),
             nn.Dropout(0.2),
             nn.Conv2d(512, 512, kernel_size=3, padding=1),
-            nn.BatchNorm2d(256),
+            nn.BatchNorm2d(512),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
             nn.Dropout(0.2),
@@ -192,7 +192,7 @@ def main():
     train_dataset, test_dataset = create_datasets(classes, dtype=tf_float)
 
     # Prepare the datasets for training and evaluation
-    cifar_datamodule = pl.LightningDataModule.from_datasets(train_dataset=train_dataset, num_workers=args.num_workers, batch_size=batch_size, val_dataset=test_dataset)
+    cifar_datamodule = pl.LightningDataModule.from_datasets(train_dataset=train_dataset, num_workers=args.num_workers, batch_size=batch_size, val_dataset=test_dataset, test_dataset=test_dataset)
 
     # Create model
     model = CNN(classes)
@@ -204,7 +204,7 @@ def main():
     trainer = pl.Trainer(max_epochs=epochs, accelerator=args.accelerator)
     trainer.fit(model, datamodule=cifar_datamodule)
     
-    trainer.test(model, dataloaders=test_dataset, verbose=True)
+    trainer.test(model, dataloaders=cifar_datamodule, verbose=True)
 
     x = torch.randn(batch_size, 3, 32, 32, requires_grad=True)
     torch.onnx.export(model, x, "lightning_logs/version_" + str(trainer.logger.version) + "/model.onnx", export_params=True, opset_version=10, input_names=['input'], output_names=['output'], dynamic_axes={'input' : {0 : 'batch_size'}, 'output' : {0 : 'batch_size'}})
