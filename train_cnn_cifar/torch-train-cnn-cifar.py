@@ -2,16 +2,12 @@
 import argparse
 import os
 import sys
-import time
-from typing import Any, Optional
 
 import torch
-import torchvision.transforms
-from lightning.pytorch.utilities.types import STEP_OUTPUT
 from torch import nn
 from torchvision.datasets import CIFAR100, CIFAR10
 from torchvision.transforms import ToTensor
-from torch.utils.data import TensorDataset, DataLoader
+from torch.utils.data import TensorDataset
 import torchinfo
 from torchmetrics import Accuracy
 import lightning as pl
@@ -32,8 +28,6 @@ def get_command_arguments():
     parser.add_argument('-b', '--batch_size', type=int, default=256, help='batch size')
     parser.add_argument('-a', '--accelerator', type=str, default='auto', choices=['auto', 'cpu', 'gpu', 'hpu', 'tpu'], help='accelerator')
     parser.add_argument('-w', '--num_workers', type=int, default=0, help='number of workers')
-    parser.add_argument('-l', '--learning_rate', type=float, default=0.001, help='learning rate [TEMP]')
-    parser.add_argument('-d', '--weight_decay', type=float, default=0.01, help='weight decay [TEMP]')
 
     args = parser.parse_args()
     return args
@@ -159,7 +153,7 @@ class CNN(pl.LightningModule):
         self.log("val_acc", self.val_acc.compute(), prog_bar=True, on_epoch=True, on_step=False)
 
     def configure_optimizers(self):
-        optimizer = torch.optim.AdamW(self.parameters(), lr=self.args.learning_rate, weight_decay=self.args.weight_decay)
+        optimizer = torch.optim.AdamW(self.parameters(), lr=0.001)
         return optimizer
 
 #%%
@@ -204,11 +198,17 @@ def main():
     # # Train the model on the dataset || TODO: make the accel option and devices / nodes an arg
     trainer = pl.Trainer(max_epochs=epochs, accelerator=args.accelerator)
     trainer.fit(model, datamodule=cifar_datamodule)
-    
     trainer.test(model, dataloaders=cifar_datamodule, verbose=True)
 
-    x = torch.randn(batch_size, 3, 32, 32, requires_grad=True)
-    torch.onnx.export(model, x, "lightning_logs/version_" + str(trainer.logger.version) + "/model.onnx", export_params=True, opset_version=10, input_names=['input'], output_names=['output'], dynamic_axes={'input' : {0 : 'batch_size'}, 'output' : {0 : 'batch_size'}})
+    modelDir = "model_exports/version_" + str(trainer.logger.version)
+    fake_input = torch.randn(batch_size, 3, 32, 32, requires_grad=True)
+    try:
+        os.mkdir("model_exports")
+    except FileExistsError:
+        pass
+    os.mkdir(modelDir)
+    torch.onnx.export(model.eval(), fake_input, f"{modelDir}/model.onnx", do_constant_folding=False, export_params=True, verbose=True, opset_version=18, input_names=['input'], output_names=['output'], dynamic_axes={'input' : {0 : 'batch_size'}, 'output' : {0 : 'batch_size'}})
+    torch.save(model.eval(), f"{modelDir}/model.pt")
 
     return 0
 
