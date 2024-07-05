@@ -19,5 +19,6 @@ dependencies:
   - pillow
   - onnx
   - onnxruntime
+  - onnxscript
   - pip:
       - --extra-index-url https://download.pytorch.org/whl/cu118

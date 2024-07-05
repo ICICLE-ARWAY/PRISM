@@ -3,8 +3,10 @@ import argparse
 import os
 import sys
 
+import keras.models
 import onnx
 import torch
+from keras import Model
 from torch import nn
 from torchvision.datasets import CIFAR100, CIFAR10
 from torchvision.transforms import ToTensor
@@ -13,7 +15,7 @@ import torchinfo
 from torchmetrics import Accuracy
 import lightning as pl
 import numpy as np
-from onnx2pytorch import ConvertModel
+import onnx2keras
 
 # %%
 def get_command_arguments():
@@ -207,14 +209,18 @@ def main():
     trainer.test(model, dataloaders=cifar_datamodule, verbose=True)
 
     modelDir = "model_exports/version_" + str(trainer.logger.version)
-    fake_input = torch.randn(batch_size, 3, 32, 32, requires_grad=True)
+    fake_input = torch.rand((batch_size, 3, 32, 32), dtype=tf_float)
     try:
         os.mkdir("model_exports")
     except FileExistsError:
         pass
     os.mkdir(modelDir)
-    torch.onnx.export(model.eval(), fake_input, f"{modelDir}/model.onnx", do_constant_folding=False, export_params=True, opset_version=17, input_names=['input'], output_names=['output'], dynamic_axes={'input' : {0 : 'batch_size'}, 'output' : {0 : 'batch_size'}})
+    torch.onnx.export(model.eval(), fake_input, f"{modelDir}/model.onnx", input_names=["input"], output_names=["output"])
     torch.save(model.eval(), f"{modelDir}/model.pt")
+    kmodel = onnx2keras.onnx_to_keras(onnx.load_model(f"{modelDir}/model.onnx"), ["input"], name_policy="renumerate", verbose=False)
+    kmodel.export(f"{modelDir}/modelprotobuf")
+    keras.models.save_model(kmodel, f"{modelDir}/model.h5", save_format="h5")
+    keras.models.save_model(kmodel, f"{modelDir}/model.keras", save_format="keras")
 
     return 0
 
