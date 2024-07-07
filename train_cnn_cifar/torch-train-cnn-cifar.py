@@ -208,15 +208,21 @@ def main():
     trainer.fit(model, datamodule=cifar_datamodule)
     trainer.test(model, dataloaders=cifar_datamodule, verbose=True)
 
-    modelDir = "model_exports/version_" + str(trainer.logger.version)
-    fake_input = torch.rand((batch_size, 3, 32, 32), dtype=tf_float)
+    modelDir = "model_exports/version_" + str(trainer.logger.version)  # Create str ref of model directory
+    fake_input = torch.rand((batch_size, 3, 32, 32), dtype=tf_float)  # Fake input to emulate how actual input would be given
     try:
-        os.mkdir("model_exports")
+        os.mkdir("model_exports")  # try to make model_exports folder
     except FileExistsError:
         pass
-    os.mkdir(modelDir)
+    os.mkdir(modelDir)  # make directory in model_exports for this iteration of the model
+
+    # export ONNX and PyTorch models w/ builtin versions
     torch.onnx.export(model.eval(), fake_input, f"{modelDir}/model.onnx", input_names=["input"], output_names=["output"])
     torch.save(model.eval(), f"{modelDir}/model.pt")
+
+    # Create Keras model from ONNX model, using that to create .keras output, .h5 (HDF5) output, and a .pb output
+    # Note that .keras outputs an .h5 file as .keras is effectively a zip file containing a .h5 file along with other items
+    # The addition of the explicit .h5 output is for ease-of-use
     kmodel = onnx2keras.onnx_to_keras(onnx.load_model(f"{modelDir}/model.onnx"), ["input"], name_policy="renumerate", verbose=False)
     kmodel.export(f"{modelDir}/modelprotobuf")
     keras.models.save_model(kmodel, f"{modelDir}/model.h5", save_format="h5")
