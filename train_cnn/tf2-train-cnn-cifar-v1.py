@@ -140,7 +140,7 @@ def main():
     if args.model_file != "":
         model = keras.models.load_model(args.model_file) 
     else:
-        model = create_model(classes)
+        model = create_model(classes, args)
 
     # Print summary of the model's network architecture
     model.summary()
@@ -172,7 +172,12 @@ def main():
         model.save(os.path.join(model_dir, 'model_tf.keras'))
     else:
         # ONNX format
-        model.save(os.path.join(model_dir, 'model_tf.onnx'))
+        onnx_filename = 'model.onnx'
+        input_signature = [tf.TensorSpec((None, 32, 32, 3), tf.float32, name='input')]
+        model.output_names=['output']
+        onnx_model, _ = tf2onnx.convert.from_keras(model, input_signature=input_signature, opset=13)
+        onnx.save(onnx_model, onnx_filename)
+        print(f"Model saved in ONNX format: {onnx_filename}")
 
     
     return 0
