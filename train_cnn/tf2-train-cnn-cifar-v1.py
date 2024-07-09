@@ -7,6 +7,8 @@ import sys
 
 import tensorflow as tf
 import keras
+import onnx
+import tf2onnx
 
 def get_command_arguments():
     """ Read input variables and parse command-line arguments """
@@ -145,9 +147,27 @@ def main():
     # Evaluate the model and its accuracy
     model.evaluate(x=test_dataset, verbose=2)
 
-    # Save the model
-    model.save('saved_model_'+os.environ['SLURM_JOB_ID'] + ".keras") 
+    # Save the model in the chosen format 
+    # Support for .tf, .h5, .keras, and .onnx as of now
+    # Save the model in the chosen format
+    model_dir = 'saved_model_tf' + os.environ.get('SLURM_JOB_ID', 'local')
+    os.makedirs(model_dir, exist_ok=True)
+    
 
+    if args.model_file == 'tf':
+        # Native Tensorflow format
+        tf.saved_model.save(model, os.path.join(model_dir, 'model_tf'))
+
+
+    elif args.model_file == 'h5':
+        # HDF5 Format
+        model.save(os.path.join(model_dir, 'model_tf.h5'))
+
+    elif args.model_file == 'keras':
+        # Keras format
+        model.save(os.path.join(model_dir, 'model_tf.keras'))
+
+    
     return 0
 
 

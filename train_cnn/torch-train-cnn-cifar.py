@@ -124,6 +124,8 @@ class CNN(pl.LightningModule):
 
     def on_train_epoch_end(self):
         self.log("train_acc", self.train_acc.compute())
+        self.log("train_acc_epoch", self.train_acc.compute(), prog_bar=True, on_epoch=True)
+
         self.train_acc.reset()
 
     def test_step(self, batch, batch_idx):
