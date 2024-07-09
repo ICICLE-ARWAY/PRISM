@@ -3,19 +3,13 @@ import argparse
 import os
 import sys
 
-import keras
-import onnx
 import torch
-from keras import Model
-from torch import nn
 from torchvision.datasets import CIFAR100, CIFAR10
 from torchvision.transforms import ToTensor
 from torch.utils.data import TensorDataset
-import torchinfo
 from torchmetrics import Accuracy
 import lightning as pl
 import numpy as np
-import onnx2keras
 
 # %%
 def get_command_arguments():
@@ -33,6 +27,7 @@ def get_command_arguments():
     parser.add_argument('-a', '--accelerator', type=str, default='auto', choices=['auto', 'cpu', 'gpu', 'hpu', 'tpu'], help='accelerator')
     parser.add_argument('-w', '--num_workers', type=int, default=0, help='number of workers')
     parser.add_argument('-m', '--model_file', type=str, default="", help="pre-existing model file if needing to further train model")
+    parser.add_argument('-s', '--save_model', type=str, default="onnx", choices=["onnx", "pt"], help="save model as ONNX or PyTorch model file")
 
     args = parser.parse_args()
     return args
@@ -42,13 +37,9 @@ def create_datasets(classes, dtype):
     """ Create CIFAR training and test datasets """
 
     # Download training and test image datasets
-    #TODO: find a way for CIFAR-20 and fine/coarse labels
-    #NOTE: DOES NOT WORK WITH CIFAR100, "target out of bounds error"
     if classes == 100:
         train_dataset = CIFAR100(root='./data', transform=ToTensor(), train=True, download=True)
         test_dataset = CIFAR100(root='./data', transform=ToTensor(), train=False, download=True)
-        # cifar_dataset = pl.LightningDataModule.from_datasets(train_dataset=CIFAR100(root='./data', train=True, transform=ToTensor(), download=True),
-                                                            #  test_dataset=CIFAR100(root='./data', train=False, transform=ToTensor(), download=True))
     else: # classes == 10
         train_dataset = CIFAR10(root='./data', transform=ToTensor(), train=True, download=True)
         test_dataset = CIFAR10(root='./data', transform=ToTensor(), train=False, download=True)
@@ -90,32 +81,32 @@ class CNN(pl.LightningModule):
         self.test_acc = Accuracy(num_classes=classes, task='MULTICLASS')
         self.val_acc = Accuracy(num_classes=classes, task='MULTICLASS')
 
-        self.cnn_block = nn.Sequential(
-            nn.Conv2d(3, 64, kernel_size=3, padding=1),
-            nn.BatchNorm2d(64),
-            nn.ReLU(),
-            nn.Conv2d(64, 128, kernel_size=3, padding=1),
-            nn.BatchNorm2d(128),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Conv2d(128, 128, kernel_size=3, padding=1),
-            nn.BatchNorm2d(128),
-            nn.ReLU(),
-            nn.Conv2d(128, 128, kernel_size=3, padding=1),
-            nn.BatchNorm2d(128),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Conv2d(128, 128, kernel_size=3, padding=1),
-            nn.BatchNorm2d(128),
-            nn.ReLU(),
-            nn.Dropout(0.7),
-            nn.Conv2d(128, 128, kernel_size=3, padding=1),
-            nn.BatchNorm2d(128),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.AdaptiveAvgPool2d((1, 1)),
-            nn.Flatten(),
-            nn.Linear(128, classes)
+        self.cnn_block = torch.nn.Sequential(
+            torch.nn.Conv2d(3, 64, kernel_size=3, padding=1),
+            torch.nn.BatchNorm2d(64),
+            torch.nn.ReLU(),
+            torch.nn.Conv2d(64, 128, kernel_size=3, padding=1),
+            torch.nn.BatchNorm2d(128),
+            torch.nn.ReLU(),
+            torch.nn.MaxPool2d(kernel_size=2, stride=2),
+            torch.nn.Conv2d(128, 128, kernel_size=3, padding=1),
+            torch.nn.BatchNorm2d(128),
+            torch.nn.ReLU(),
+            torch.nn.Conv2d(128, 128, kernel_size=3, padding=1),
+            torch.nn.BatchNorm2d(128),
+            torch.nn.ReLU(),
+            torch.nn.MaxPool2d(kernel_size=2, stride=2),
+            torch.nn.Conv2d(128, 128, kernel_size=3, padding=1),
+            torch.nn.BatchNorm2d(128),
+            torch.nn.ReLU(),
+            torch.nn.Dropout(0.7),
+            torch.nn.Conv2d(128, 128, kernel_size=3, padding=1),
+            torch.nn.BatchNorm2d(128),
+            torch.nn.ReLU(),
+            torch.nn.MaxPool2d(kernel_size=2, stride=2),
+            torch.nn.AdaptiveAvgPool2d((1, 1)),
+            torch.nn.Flatten(),
+            torch.nn.Linear(128, classes)
         )
 
     def forward(self, x):
@@ -124,7 +115,7 @@ class CNN(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         x, y = batch
         logits = self(x)
-        loss = nn.functional.cross_entropy(logits, y)
+        loss = torch.nn.functional.cross_entropy(logits, y)
         preds = torch.argmax(logits, dim=1)
         self.train_acc.update(preds, y)
         self.log("train_loss", loss, prog_bar=True, on_step=False, on_epoch=True)
@@ -138,7 +129,7 @@ class CNN(pl.LightningModule):
     def test_step(self, batch, batch_idx):
         x, y = batch
         logits = self(x)
-        loss = nn.functional.cross_entropy(logits, y)
+        loss = torch.nn.functional.cross_entropy(logits, y)
         preds = torch.argmax(logits, dim=1)
         self.test_acc.update(preds, y)
         self.log("test_loss", loss, prog_bar=True)
@@ -148,7 +139,7 @@ class CNN(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         x, y = batch
         y_hat = self(x)
-        loss = nn.functional.cross_entropy(y_hat, y)
+        loss = torch.nn.functional.cross_entropy(y_hat, y)
         preds = torch.argmax(y_hat, dim=1)
         self.val_acc.update(preds, y)
         self.log("val_loss", loss, prog_bar=True)
@@ -197,9 +188,6 @@ def main():
     else:
         model = CNN(classes, args)
 
-    # Print summary of the model's network architecture
-    torchinfo.summary(model, input_size=(batch_size, 3, 32, 32))
-
     # # Train the model on the dataset || TODO: make the accel option and devices / nodes an arg
     trainer = pl.Trainer(max_epochs=epochs, accelerator=args.accelerator)
     trainer.fit(model, datamodule=cifar_datamodule)
@@ -214,17 +202,11 @@ def main():
     os.mkdir(modelDir)  # make directory in model_exports for this iteration of the model
 
     # export ONNX and PyTorch models w/ builtin versions
-    torch.onnx.export(model.eval(), fake_input, f"{modelDir}/model.onnx", input_names=["input"], output_names=["output"])
-    torch.save(model.eval(), f"{modelDir}/model.pt")
-
-    # Create Keras model from ONNX model, using that to create .keras output, .h5 (HDF5) output, and a .pb output
-    # Note that .keras outputs an .h5 file as .keras is effectively a zip file containing a .h5 file along with other items
-    # The addition of the explicit .h5 output is for ease-of-use
-    kmodel = onnx2keras.onnx_to_keras(onnx.load_model(f"{modelDir}/model.onnx"), ["input"], name_policy="renumerate", verbose=False)
-    kmodel.export(f"{modelDir}/modelprotobuf")
-    keras.models.save_model(kmodel, f"{modelDir}/model.h5", save_format="h5")
-    keras.models.save_model(kmodel, f"{modelDir}/model.keras", save_format="keras")
-
+    if args.save_model == "onnx":
+        torch.onnx.export(model.eval(), fake_input, f"{modelDir}/model.onnx", input_names=["input"], output_names=["output"])
+    else:
+        torch.save(model.eval(), f"{modelDir}/model.pt")
+        
     return 0
 
 

@@ -25,4 +25,4 @@ export KERAS_HOME="${LOCAL_SCRATCH_DIR}"
 printenv
 
 time -p singularity exec --bind "${KERAS_HOME}:/tmp" --nv "${SINGULARITY_CONTAINER_DIR}/tensorflow/tensorflow_22.08-tf2-py3.sif" \
-  python3 -u tf2-keras3-train-cnn-cifar.py --classes 10 --precision fp32 --epochs 42 --batch_size 256
+  python3 -u tf2-train-cnn-cifar-v1.py --classes 10 --precision fp32 --epochs 42 --batch_size 256
