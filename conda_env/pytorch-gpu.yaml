@@ -12,12 +12,16 @@ dependencies:
   - torchaudio == 2.3.1
   - torchinfo
   - torchmetrics
+  - opencv == 4.10.0
   - pytorch-cuda=12.1
   - jupyterlab
   - conda-forge::opencv
   - lightning
-  - pillow
   - onnx
   - onnxruntime
+  - pip
   - pip:
-      - --extra-index-url https://download.pytorch.org/whl/cu118
+      - tensorflow == 2.15.1
+      - keras == 2.15.0
+      - onnxscript
+      - onnx2keras

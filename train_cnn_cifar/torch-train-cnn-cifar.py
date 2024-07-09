@@ -2,18 +2,20 @@
 import argparse
 import os
 import sys
-import time
 
+import keras
+import onnx
 import torch
-import torchvision.transforms
+from keras import Model
 from torch import nn
 from torchvision.datasets import CIFAR100, CIFAR10
 from torchvision.transforms import ToTensor
-from torch.utils.data import TensorDataset, DataLoader
+from torch.utils.data import TensorDataset
 import torchinfo
 from torchmetrics import Accuracy
 import lightning as pl
 import numpy as np
+import onnx2keras
 
 # %%
 def get_command_arguments():
@@ -24,11 +26,13 @@ def get_command_arguments():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
-    parser.add_argument('-c', '--classes', type=int, default=10, choices=[10, 20, 100], help='number of classes in dataset')
+    parser.add_argument('-c', '--classes', type=int, default=10, choices=[10, 100], help='number of classes in dataset')
     parser.add_argument('-p', '--precision', type=str, default='fp32', choices=['bf16', 'fp16', 'fp32', 'fp64'], help='floating-point precision')
     parser.add_argument('-e', '--epochs', type=int, default=42, help='number of training epochs')
     parser.add_argument('-b', '--batch_size', type=int, default=256, help='batch size')
-    parser.add_argument('-a', '--accelerator',type=str, default='gpu', choices=['cpu', 'gpu', 'hpu', 'tpu'], help='accelerator')
+    parser.add_argument('-a', '--accelerator', type=str, default='auto', choices=['auto', 'cpu', 'gpu', 'hpu', 'tpu'], help='accelerator')
+    parser.add_argument('-w', '--num_workers', type=int, default=0, help='number of workers')
+    parser.add_argument('-m', '--model_file', type=str, default="", help="pre-existing model file if needing to further train model")
 
     args = parser.parse_args()
     return args
@@ -45,9 +49,6 @@ def create_datasets(classes, dtype):
         test_dataset = CIFAR100(root='./data', transform=ToTensor(), train=False, download=True)
         # cifar_dataset = pl.LightningDataModule.from_datasets(train_dataset=CIFAR100(root='./data', train=True, transform=ToTensor(), download=True),
                                                             #  test_dataset=CIFAR100(root='./data', train=False, transform=ToTensor(), download=True))
-    elif classes == 20:
-        # CIFAR-20 is not directly available in torchvision, this is a placeholder
-        pass
     else: # classes == 10
         train_dataset = CIFAR10(root='./data', transform=ToTensor(), train=True, download=True)
         test_dataset = CIFAR10(root='./data', transform=ToTensor(), train=False, download=True)
@@ -81,25 +82,40 @@ def create_datasets(classes, dtype):
 
 #%%
 class CNN(pl.LightningModule):
-    def __init__(self, classes):
+    def __init__(self, classes, args):
         super(CNN, self).__init__()
+        self.args = args
 
         self.train_acc = Accuracy(num_classes=classes, task='MULTICLASS')
         self.test_acc = Accuracy(num_classes=classes, task='MULTICLASS')
+        self.val_acc = Accuracy(num_classes=classes, task='MULTICLASS')
 
         self.cnn_block = nn.Sequential(
-            nn.Conv2d(in_channels=3, out_channels=32, kernel_size=3),
+            nn.Conv2d(3, 64, kernel_size=3, padding=1),
+            nn.BatchNorm2d(64),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2),
-            nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3),
+            nn.Conv2d(64, 128, kernel_size=3, padding=1),
+            nn.BatchNorm2d(128),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2),
-            nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.Conv2d(128, 128, kernel_size=3, padding=1),
+            nn.BatchNorm2d(128),
             nn.ReLU(),
+            nn.Conv2d(128, 128, kernel_size=3, padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.Conv2d(128, 128, kernel_size=3, padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+            nn.Dropout(0.7),
+            nn.Conv2d(128, 128, kernel_size=3, padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.AdaptiveAvgPool2d((1, 1)),
             nn.Flatten(),
-            nn.Linear(64 * 4 * 4, 64),
-            nn.ReLU(),
-            nn.Linear(64, classes)
+            nn.Linear(128, classes)
         )
 
     def forward(self, x):
@@ -111,7 +127,8 @@ class CNN(pl.LightningModule):
         loss = nn.functional.cross_entropy(logits, y)
         preds = torch.argmax(logits, dim=1)
         self.train_acc.update(preds, y)
-        self.log("train_loss", loss, prog_bar=True)
+        self.log("train_loss", loss, prog_bar=True, on_step=False, on_epoch=True)
+        self.log('train_acc', self.train_acc.compute(), prog_bar=True, on_step=False, on_epoch=True)
         return loss
 
     def on_train_epoch_end(self):
@@ -130,8 +147,17 @@ class CNN(pl.LightningModule):
         self.log("test_acc", self.test_acc.compute(), prog_bar=True)
         return loss
 
+    def validation_step(self, batch, batch_idx):
+        x, y = batch
+        y_hat = self(x)
+        loss = nn.functional.cross_entropy(y_hat, y)
+        preds = torch.argmax(y_hat, dim=1)
+        self.val_acc.update(preds, y)
+        self.log("val_loss", loss, prog_bar=True)
+        self.log("val_acc", self.val_acc.compute(), prog_bar=True, on_epoch=True, on_step=False)
+
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=0.001)
+        optimizer = torch.optim.AdamW(self.parameters(), lr=0.001)
         return optimizer
 
 #%%
@@ -165,24 +191,41 @@ def main():
     train_dataset, test_dataset = create_datasets(classes, dtype=tf_float)
 
     # Prepare the datasets for training and evaluation
-    # TODO: add num_workers to args
-    cifar_dataset = pl.LightningDataModule.from_datasets(train_dataset=train_dataset, num_workers=7, batch_size=batch_size)
-    test_dataset = DataLoader(test_dataset, batch_size=batch_size)
+    cifar_datamodule = pl.LightningDataModule.from_datasets(train_dataset=train_dataset, num_workers=args.num_workers, batch_size=batch_size, val_dataset=test_dataset, test_dataset=test_dataset)
 
     # Create model
-    model = CNN(classes)
+    if args.model_file != "":
+        model = torch.load(args.model_file)
+    else:
+        model = CNN(classes, args)
 
     # Print summary of the model's network architecture
     torchinfo.summary(model, input_size=(batch_size, 3, 32, 32))
 
     # # Train the model on the dataset || TODO: make the accel option and devices / nodes an arg
-    trainer = pl.Trainer(max_epochs=epochs, accelerator=args.accelerator, devices=1)
-    trainer.fit(model, datamodule=cifar_dataset)
-    
-    trainer.test(model, test_dataloaders = test_dataset)
+    trainer = pl.Trainer(max_epochs=epochs, accelerator=args.accelerator)
+    trainer.fit(model, datamodule=cifar_datamodule)
+    trainer.test(model, dataloaders=cifar_datamodule, verbose=True)
 
-    x = torch.randn(batch_size, 3, 32, 32, requires_grad=True)
-    torch.onnx.export(model, x, "lightning_logs/version_" + str(trainer.logger.version) + "/model.onnx", export_params=True, opset_version=10, input_names=['input'], output_names=['output'], dynamic_axes={'input' : {0 : 'batch_size'}, 'output' : {0 : 'batch_size'}})
+    modelDir = "model_exports/version_" + str(trainer.logger.version)  # Create str ref of model directory
+    fake_input = torch.rand((batch_size, 3, 32, 32), dtype=tf_float)  # Fake input to emulate how actual input would be given
+    try:
+        os.mkdir("model_exports")  # try to make model_exports folder
+    except FileExistsError:
+        pass
+    os.mkdir(modelDir)  # make directory in model_exports for this iteration of the model
+
+    # export ONNX and PyTorch models w/ builtin versions
+    torch.onnx.export(model.eval(), fake_input, f"{modelDir}/model.onnx", input_names=["input"], output_names=["output"])
+    torch.save(model.eval(), f"{modelDir}/model.pt")
+
+    # Create Keras model from ONNX model, using that to create .keras output, .h5 (HDF5) output, and a .pb output
+    # Note that .keras outputs an .h5 file as .keras is effectively a zip file containing a .h5 file along with other items
+    # The addition of the explicit .h5 output is for ease-of-use
+    kmodel = onnx2keras.onnx_to_keras(onnx.load_model(f"{modelDir}/model.onnx"), ["input"], name_policy="renumerate", verbose=False)
+    kmodel.export(f"{modelDir}/modelprotobuf")
+    keras.models.save_model(kmodel, f"{modelDir}/model.h5", save_format="h5")
+    keras.models.save_model(kmodel, f"{modelDir}/model.keras", save_format="keras")
 
     return 0
 

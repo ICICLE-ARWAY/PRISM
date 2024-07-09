@@ -26,4 +26,4 @@ export KERAS_HOME="${LOCAL_SCRATCH_DIR}"
 printenv
 
 time -p singularity exec --bind "${KERAS_HOME}:/tmp" --nv "${SINGULARITY_CONTAINER_DIR}/pytorch/pytorch_24.03-py3.sif" \
-  python3 -u torch-train-cnn-cifar.py --classes 10 --precision fp32 --epochs 42 --batch_size 256
+  python3 -u torch-train-cnn-cifar.py --classes 10 --precision fp32 --epochs 250 --batch_size 512
