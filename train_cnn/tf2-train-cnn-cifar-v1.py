@@ -106,6 +106,9 @@ def create_model(classes, args):
     return model
 
 
+        
+   
+    
 def main():
     """ Train CNN on CIFAR """
 
@@ -124,6 +127,7 @@ def main():
         tf_float = tf.float32
     epochs = args.epochs
     batch_size = args.batch_size
+
 
     # Create training and test datasets
     train_dataset, test_dataset = create_datasets(classes, dtype=tf_float)
