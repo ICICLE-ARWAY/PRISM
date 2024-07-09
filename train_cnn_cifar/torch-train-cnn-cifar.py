@@ -3,7 +3,7 @@ import argparse
 import os
 import sys
 
-import keras.models
+import keras
 import onnx
 import torch
 from keras import Model
@@ -26,7 +26,7 @@ def get_command_arguments():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
-    parser.add_argument('-c', '--classes', type=int, default=10, choices=[10, 20, 100], help='number of classes in dataset')
+    parser.add_argument('-c', '--classes', type=int, default=10, choices=[10, 100], help='number of classes in dataset')
     parser.add_argument('-p', '--precision', type=str, default='fp32', choices=['bf16', 'fp16', 'fp32', 'fp64'], help='floating-point precision')
     parser.add_argument('-e', '--epochs', type=int, default=42, help='number of training epochs')
     parser.add_argument('-b', '--batch_size', type=int, default=256, help='batch size')
@@ -49,9 +49,6 @@ def create_datasets(classes, dtype):
         test_dataset = CIFAR100(root='./data', transform=ToTensor(), train=False, download=True)
         # cifar_dataset = pl.LightningDataModule.from_datasets(train_dataset=CIFAR100(root='./data', train=True, transform=ToTensor(), download=True),
                                                             #  test_dataset=CIFAR100(root='./data', train=False, transform=ToTensor(), download=True))
-    elif classes == 20:
-        # CIFAR-20 is not directly available in torchvision, this is a placeholder
-        pass
     else: # classes == 10
         train_dataset = CIFAR10(root='./data', transform=ToTensor(), train=True, download=True)
         test_dataset = CIFAR10(root='./data', transform=ToTensor(), train=False, download=True)
