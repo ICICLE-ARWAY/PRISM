@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
-#
-# Train a simple Convolutional Neural Network to classify CIFAR images.
-#CURRENTLY THE SAME AS THE KERAS3, IF WANT, CHANGE BACK TO KERAS2
+# NOTE: USES KERAS3 API
 
 import argparse
 import os
 import sys
-import time
 
-import numpy as np
 import tensorflow as tf
 import keras
+import onnx
+import tf2onnx
 
 def get_command_arguments():
     """ Read input variables and parse command-line arguments """
@@ -20,10 +18,14 @@ def get_command_arguments():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
-    parser.add_argument('-c', '--classes', type=int, default=10, choices=[10, 20, 100], help='number of classes in dataset')
+    parser.add_argument('-c', '--classes', type=int, default=10, choices=[10, 100], help='number of classes in dataset')
     parser.add_argument('-p', '--precision', type=str, default='fp32', choices=['bf16', 'fp16', 'fp32', 'fp64'], help='floating-point precision')
     parser.add_argument('-e', '--epochs', type=int, default=42, help='number of training epochs')
     parser.add_argument('-b', '--batch_size', type=int, default=256, help='batch size')
+    parser.add_argument('-a', '--accelerator', type=str, default='auto', choices=['auto', 'cpu', 'gpu', 'hpu', 'tpu'], help='accelerator')
+    parser.add_argument('-w', '--num_workers', type=int, default=0, help='number of workers')
+    parser.add_argument('-m', '--model_file', type=str, default="", help="pre-existing model file if needing to further train model")
+    parser.add_argument('-s', '--save_model', type=str, default="onnx", choices=["onnx", "pt"], help="save model as ONNX or PyTorch model file")
 
     args = parser.parse_args()
     return args
@@ -64,10 +66,26 @@ def create_datasets(classes, dtype):
     return train_dataset, test_dataset
 
 
-def create_model(classes):
+def create_model(classes, args):
     """ Specify and compile the CNN model """
 
-    model = keras.Sequential([
+    if args.accelerator == 'auto':
+        if tf.config.list_physical_devices('GPU'):
+            args.accelerator = 'GPU'
+        elif tf.config.list_physical_devices('HPU'):
+            args.accelerator = 'HPU'
+        elif tf.config.list_physical_devices('TPU'):
+            args.accelerator = 'TPU'
+        else:
+            args.accelerator = 'CPU'
+    
+    args.accelerator = args.accelerator.upper()
+    tf.debugging.set_log_device_placement(True)
+    accelorators = tf.config.list_logical_devices(args.accelerator)
+    strategy = tf.distribute.MirroredStrategy(accelorators)
+
+    with strategy.scope():
+        model = keras.Sequential([
         keras.layers.InputLayer(input_shape=(32, 32, 3)),
         keras.layers.Conv2D(32, (3, 3), activation='relu'),
         keras.layers.MaxPooling2D((2, 2)),
@@ -77,17 +95,20 @@ def create_model(classes):
         keras.layers.Flatten(),
         keras.layers.Dense(64, activation='relu'),
         keras.layers.Dense(classes),
-    ])
-
-    model.compile(
-        optimizer=keras.optimizers.Adam(),
-        loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-        metrics=['accuracy'],
-    )
+        ])
+         
+        model.compile(
+            optimizer=keras.optimizers.Adam(),
+            loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+            metrics=['accuracy'],
+        )
 
     return model
 
 
+        
+   
+    
 def main():
     """ Train CNN on CIFAR """
 
@@ -107,6 +128,7 @@ def main():
     epochs = args.epochs
     batch_size = args.batch_size
 
+
     # Create training and test datasets
     train_dataset, test_dataset = create_datasets(classes, dtype=tf_float)
 
@@ -115,7 +137,10 @@ def main():
     test_dataset = test_dataset.batch(batch_size)
 
     # Create model
-    model = create_model(classes)
+    if args.model_file != "":
+        model = keras.models.load_model(args.model_file) 
+    else:
+        model = create_model(classes, args)
 
     # Print summary of the model's network architecture
     model.summary()
@@ -126,9 +151,35 @@ def main():
     # Evaluate the model and its accuracy
     model.evaluate(x=test_dataset, verbose=2)
 
-    # Save the model
-    model.save('saved_model_'+os.environ['SLURM_JOB_ID'] + ".keras") 
+    # Save the model in the chosen format 
+    # Support for .tf, .h5, .keras, and .onnx as of now
+    # Save the model in the chosen format
+    model_dir = 'saved_model_tf' + os.environ.get('SLURM_JOB_ID', 'local')
+    os.makedirs(model_dir, exist_ok=True)
+    
 
+    if args.model_file == 'tf':
+        # Native Tensorflow format
+        tf.saved_model.save(model, os.path.join(model_dir, 'model_tf'))
+
+
+    elif args.model_file == 'h5':
+        # HDF5 Format
+        model.save(os.path.join(model_dir, 'model_tf.h5'))
+
+    elif args.model_file == 'keras':
+        # Keras format
+        model.save(os.path.join(model_dir, 'model_tf.keras'))
+    else:
+        # ONNX format
+        onnx_filename = 'model.onnx'
+        input_signature = [tf.TensorSpec((None, 32, 32, 3), tf.float32, name='input')]
+        model.output_names=['output']
+        onnx_model, _ = tf2onnx.convert.from_keras(model, input_signature=input_signature, opset=13)
+        onnx.save(onnx_model, onnx_filename)
+        print(f"Model saved in ONNX format: {onnx_filename}")
+
+    
     return 0
 
 
