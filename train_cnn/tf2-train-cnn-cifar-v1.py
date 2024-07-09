@@ -166,6 +166,9 @@ def main():
     elif args.model_file == 'keras':
         # Keras format
         model.save(os.path.join(model_dir, 'model_tf.keras'))
+    else:
+        # ONNX format
+        model.save(os.path.join(model_dir, 'model_tf.onnx'))
 
     
     return 0
