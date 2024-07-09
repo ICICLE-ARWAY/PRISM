@@ -2,19 +2,21 @@ import csv
 import os.path
 import re
 import tarfile
+
+import cv2
+import numpy as np
 from tqdm import tqdm
 
 """
-The Preprocessor Configuration CSV file must follow the rules described below:
+The Preprocessor Configuration file must follow the rules described below:
  - The CSV must have no blank spaces except the first row after the first two cells
 
-The Preprocessor Configuration CSV file must follow the format described below:
-size: s + 3 rows x c columns
+The Preprocessor Configuration file must follow the format described below:
+size: s rows x ? columns
 
-Row 0: [# of subclasses per class - s],[# of classes - c]
-Row 1: Common Name of Classes
-Row 2: ID of Classes (must be alphanumeric snake case)
-Row 3 -> s + 2: Subclass ID (must start with n and follow with 8 hindu-arabic numerals)
+Col 0: Common Name of Classes
+Col 1: ID of Classes (must be alphanumeric snake case)
+Row 2 -> ?: Subclass ID (must start with n and follow with 8 hindu-arabic numerals)
 """
 
 PREPROCESSOR_CONFIG_CSV_LOCATION = "C:\\Users\\anish\\PycharmProjects\\ICICLE-ML-BENCHMARK\\preprocess_imagenet_dataset\\ImageNet2SDSC20Config.csv"  # Path
@@ -69,54 +71,79 @@ class ImageClassSet:
 
 def main():
     # TODO: ADD ARGS TO DEFINE CONSTANTS
-    preprocessorconfig = csv.reader(open(PREPROCESSOR_CONFIG_CSV_LOCATION, newline=''))
-    configarray = list(preprocessorconfig)
-
-    s = int(configarray[0][0])
-    c = int(configarray[0][1])
+    preprocessorconfig = open(PREPROCESSOR_CONFIG_CSV_LOCATION, newline='')
+    c = int(preprocessorconfig.readline().split(',')[0])
 
     imageclasses = ImageClassSet()
     for i in range(0, c):
-        fullname = configarray[1][i]
-        nameid = configarray[2][i]
-        subclasses = []
-        for j in range(3, s + 3):
-            subclasses.append(configarray[j][i])
+        configArray = preprocessorconfig.readline().split(',')
+        configArray[-1] = configArray[-1].strip()
+        fullname = configArray[0]
+        nameid = configArray[1]
+        subclasses = configArray[2:]
         imageclasses.addimageclass((ImageClass(fullname, nameid, subclasses, i)))
 
     photoset = tarfile.open(ILSVRC2012_LOCATION)
     processedmembers = []
 
-    with tqdm(total=(s * c)) as progressbar:
-        for row in tqdm(range(3, s + 3)):
-            for col in range(0, c):
-                subclass = configarray[row][col]
-                # Confirm that string is valid
+    with tqdm(total=c) as progressbar:
+        for imgClass in imageclasses.imageClassDict.values():
+            for subclass in imgClass.subclasses:
                 if len(re.sub("n[0-9]{8}", "", subclass)) != 0:
-                    raise Exception(f"Value {subclass} at position " + str(row) + ", " + str(col) + " is invalid!")
+                    raise Exception(f"Value {subclass} for {imgClass.nameID} is invalid!")
                 try:
                     member = photoset.getmember(subclass + ".tar")
                 except KeyError:
                     raise Exception(subclass + " is not a valid ILSVRC category!")
                 photoset.extractall(members=[member], path=OUTPUT_FOLDER_LOCATION + "\\tarfiles")
                 processedmembers.append(member)
-                progressbar.update()
-
-    # UNPACKING PART TWO
-    with tqdm(total=(s * c)) as progressbar:
-        for member in processedmembers:
-            name = member.name
-            photos = tarfile.open(os.path.join(OUTPUT_FOLDER_LOCATION, "tarfiles", name))
-            photos.extractall(path=os.path.join(OUTPUT_FOLDER_LOCATION, "images", str(imageclasses.getimageclassfromsubclass(re.sub(".tar", "", name)).numID)))
             progressbar.update()
 
-    # Renaming all the image files
-    for folder in os.listdir(os.path.join(OUTPUT_FOLDER_LOCATION, "images")):
-        folderpath = os.path.join(OUTPUT_FOLDER_LOCATION, "images", folder)
-        counter = 0
-        for file in os.scandir(folderpath):
-            os.rename(os.path.join(folderpath, file), os.path.join(folderpath, f"{folder}_{counter}.png"))
-            counter += 1
+    with tqdm(total=c) as progressbar:
+        for imgClass in imageclasses.imageClassDict.values():
+            for subclass in imgClass.subclasses:
+                photos = tarfile.open(os.path.join(OUTPUT_FOLDER_LOCATION, "tarfiles", subclass + ".tar"))
+                photos.extractall(path=os.path.join(OUTPUT_FOLDER_LOCATION, "images", imgClass.nameID))
+            progressbar.update()
+
+    # Renaming all the image files & content-aware crop
+    with tqdm(total=c) as progressbar:
+        valmap = open(os.path.join(OUTPUT_FOLDER_LOCATION, "val_map.csv"), "w")
+        testmap = open(os.path.join(OUTPUT_FOLDER_LOCATION, "test_map.csv"), "w")
+
+        try:
+            os.mkdir(os.path.join(OUTPUT_FOLDER_LOCATION, "train"))
+            os.mkdir(os.path.join(OUTPUT_FOLDER_LOCATION, "val"))
+            os.mkdir(os.path.join(OUTPUT_FOLDER_LOCATION, "test"))
+        except FileExistsError:
+            pass
+
+        globalcount = 0
+        for folder in os.listdir(os.path.join(OUTPUT_FOLDER_LOCATION, "images")):
+            folderpath = os.path.join(OUTPUT_FOLDER_LOCATION, "images", folder)
+            try:
+                os.mkdir(os.path.join(OUTPUT_FOLDER_LOCATION, "train", folder))
+                os.mkdir(os.path.join(OUTPUT_FOLDER_LOCATION, "val", folder))
+                os.mkdir(os.path.join(OUTPUT_FOLDER_LOCATION, "test", folder))
+            except FileExistsError:
+                pass
+
+            files = list(os.scandir(folderpath))
+            filecount = len(os.listdir(folderpath))
+            for i in range(0, filecount):
+                # 70% train 10% val 20% test
+                file = files[i]
+
+                if i / filecount < 0.7:
+                    os.rename(os.path.join(folderpath, file.path.lower()), os.path.join(OUTPUT_FOLDER_LOCATION, "train", folder, f"{globalcount}.jpeg"))
+                elif i / filecount < 0.8:
+                    os.rename(os.path.join(folderpath, file), os.path.join(OUTPUT_FOLDER_LOCATION, "val", folder, f"{globalcount}.jpeg"))
+                    valmap.writelines(f"{globalcount},{folder}\n")
+                elif i / filecount < 1:
+                    os.rename(os.path.join(folderpath, file), os.path.join(OUTPUT_FOLDER_LOCATION, "test", folder, f"{globalcount}.jpeg"))
+                    testmap.writelines(f"{globalcount},{folder}\n")
+                globalcount += 1
+            progressbar.update()
 
 
 if __name__ == "__main__":
