@@ -18,15 +18,10 @@ def get_command_arguments():
     return args
 
 def run_benchmark(cpus):
-    start = time.time()
-    process = subprocess.Popen(["pwd"], shell=True)
     script = os.environ["SLURM_SUBMIT_DIR"] + "/cpu_benchmarks/tf2-train-cnn-cifar-v1-bm-" + str(cpus) + ".sh"
-    print(script)
     process = subprocess.Popen(["sbatch", script])
     while process.poll() is None:
         pass
-    end = time.time()
-    print(f"CPUS: {cpus} Time Elapsed: {end-start}")
 
 def main():
 
