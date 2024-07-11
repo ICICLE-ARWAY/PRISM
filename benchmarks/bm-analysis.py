@@ -4,12 +4,10 @@ import os
 
 """
 .ood_portal/project/default/1
-
-
 """
 for cpus in range(2, 128, 4):
     start = time.time()
-    process = subprocess.Popen(["sbatch", "./tf2-train-cnn-cifar-v1-bm-1.sh", "--export=ALL", f"CPUS={cpus}"], shell=True)
+    process = subprocess.Popen(["sbatch", f"--cpus-per-task={cpus}","./tf2-train-cnn-cifar-v1-bm-1.sh", "--export=ALL"], shell=True)
     while process.poll() is None:
         pass
     end = time.time()
