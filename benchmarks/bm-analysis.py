@@ -22,7 +22,7 @@ def run_benchmark(cpus):
     process = subprocess.Popen(["pwd"], shell=True)
     script = os.environ["SLURM_SUBMIT_DIR"] + "/cpu_benchmarks/tf2-train-cnn-cifar-v1-bm-" + str(cpus) + ".sh"
     print(script)
-    process = subprocess.Popen(["sbatch", script, "--export=ALL"], shell=True)
+    process = subprocess.Popen(["sbatch", script], shell=True)
     while process.poll() is None:
         pass
     end = time.time()
