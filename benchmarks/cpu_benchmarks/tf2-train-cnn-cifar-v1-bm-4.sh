@@ -3,7 +3,7 @@
 #SBATCH --job-name=tf2-train-cnn-cifar-v1-bm-4-c10-fp32-e42-bs256
 #SBATCH --account=ddp324
 #SBATCH --clusters=expanse
-#SBATCH --partition=compute
+#SBATCH --partition=shared
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=4
