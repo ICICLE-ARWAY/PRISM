@@ -12,7 +12,7 @@ def get_command_arguments():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
-    parser.add_argument('-m', '--max-cpus-per-task', type=int, default=128, help='max cpus on a task')
+    parser.add_argument('-m', '--max-cpus-per-task', type=int, default=112, help='max cpus on a task')
 
     args = parser.parse_args()
     return args
