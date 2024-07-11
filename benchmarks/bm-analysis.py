@@ -1,5 +1,6 @@
 import subprocess
 import time
+import os
 
 """
 .ood_portal/project/default/1
@@ -13,5 +14,6 @@ for cpus in range(2, 128, 4):
         pass
     end = time.time()
     print(f"CPUS: {cpus} Time Elapsed: {end-start}")
+    print(os.getcwd())
     
 
