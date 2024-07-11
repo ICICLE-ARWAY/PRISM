@@ -6,7 +6,8 @@
 #SBATCH --partition=gpu-shared
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --gpus-per-task=1
+#SBATCH --cpus-per-task=1
+#SBATCH --gpus=1
 #SBATCH --mem=16G
 #SBATCH --time=00:30:00
 #SBATCH --output=%x.o%A.%a.%N
