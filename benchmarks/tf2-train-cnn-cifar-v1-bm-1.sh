@@ -10,7 +10,7 @@
 #SBATCH --mem=16G
 #SBATCH --time=00:30:00
 #SBATCH --output=%x.o%A.%a.%N
-#SBATCH --array=0
+#SBATCH --array=10
 
 declare -xir UNIX_TIME="$(date +'%s')"
 declare -xr LOCAL_TIME="$(date +'%Y%m%dT%H%M%S%z')"
@@ -78,4 +78,4 @@ printenv
 cd "${SLURM_SUBMIT_DIR}"
 
 echo "Running the training script from ${SLURM_SUBMIT_DIR} ..."
-time -p python3 -u tf2-train-cnn-cifar.py --classes 10 --precision fp32 --epochs 42 --batch_size 256
+time -p python3 -u tf2-train-cnn-cifar-v1.py --classes 10 --precision fp32 --epochs 42 --batch_size 256 --accelerator cpu --savekeras
