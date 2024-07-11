@@ -21,7 +21,7 @@ def run_benchmark(cpus):
     start = time.time()
     process = subprocess.Popen(["pwd"], shell=True)
     script = "./cpu_benchmarks/tf2-train-cnn-cifar-v1-bm-" + str(cpus) + ".sh"
-    process = subprocess.Popen(["echo", script], shell=True)
+    print(script)
     process = subprocess.Popen(["sbatch", script, "--export=ALL"], shell=True)
     while process.poll() is None:
         pass
