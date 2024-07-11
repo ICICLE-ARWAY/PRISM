@@ -19,6 +19,7 @@ def get_command_arguments():
 
 def run_benchmark(cpus):
     start = time.time()
+    process = subprocess.Popen(["pwd"], shell=True)
     process = subprocess.Popen(["sbatch", f"./cpu_benchmarks/tf2-train-cnn-cifar-v1-bm-{cpus}.sh", "--export=ALL"], shell=True)
     while process.poll() is None:
         pass
