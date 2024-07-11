@@ -12,3 +12,5 @@
 #SBATCH --output=%x.o%A.%a.%N
 
 python3 bm-analysis.py
+
+echo "Job completed"
