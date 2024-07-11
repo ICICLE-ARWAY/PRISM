@@ -28,6 +28,8 @@ def get_command_arguments():
     parser.add_argument('-w', '--num_workers', type=int, default=0, help='number of workers')
     parser.add_argument('-m', '--model_file', type=str, default="", help="pre-existing model file if needing to further train model")
     parser.add_argument('-s', '--save_model', type=str, default="onnx", choices=["onnx", "pt"], help="save model as ONNX or PyTorch model file")
+    parser.add_argument('-P', '--savepytorch', type=bool, default=False, help="save model as keras model file")
+    parser.add_argument('-O', '--saveonnx', type=bool, default=False, help="save model as ONNX model file")
 
     args = parser.parse_args()
     return args
@@ -204,9 +206,9 @@ def main():
     os.mkdir(modelDir)  # make directory in model_exports for this iteration of the model
 
     # export ONNX and PyTorch models w/ builtin versions
-    if args.save_model == "onnx":
+    if args.saveonnx:
         torch.onnx.export(model.eval(), fake_input, f"{modelDir}/model.onnx", input_names=["input"], output_names=["output"])
-    else:
+    if args.savetorch:
         torch.save(model.eval(), f"{modelDir}/model.pt")
         
     return 0

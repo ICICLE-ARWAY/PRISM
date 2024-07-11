@@ -25,7 +25,10 @@ def get_command_arguments():
     parser.add_argument('-a', '--accelerator', type=str, default='auto', choices=['auto', 'cpu', 'gpu', 'hpu', 'tpu'], help='accelerator')
     parser.add_argument('-w', '--num_workers', type=int, default=0, help='number of workers')
     parser.add_argument('-m', '--model_file', type=str, default="", help="pre-existing model file if needing to further train model")
-    parser.add_argument('-s', '--save_model', type=str, default="onnx", choices=["onnx", "pt"], help="save model as ONNX or PyTorch model file")
+    parser.add_argument('-K', '--savekeras', type=bool, default=False, help="save model as keras model file")
+    parser.add_argument('-H', '--saveh5', type=bool, default=False, help="save model as h5 model file")
+    parser.add_argument('-T', '--savetensorflow', type=bool, default=False, help="save model as tf model file")
+    parser.add_argument('-O', '--saveonnx', type=bool, default=False, help="save model as ONNX model file")
 
     args = parser.parse_args()
     return args
@@ -156,21 +159,17 @@ def main():
     # Save the model in the chosen format
     model_dir = 'saved_model_tf' + os.environ.get('SLURM_JOB_ID', 'local')
     os.makedirs(model_dir, exist_ok=True)
-    
 
-    if args.model_file == 'tf':
-        # Native Tensorflow format
+    if args.savetensorflow:
+        # Tensorflow Format
         tf.saved_model.save(model, os.path.join(model_dir, 'model_tf'))
-
-
-    elif args.model_file == 'h5':
+    if args.saveh5:
         # HDF5 Format
         model.save(os.path.join(model_dir, 'model_tf.h5'))
-
-    elif args.model_file == 'keras':
+    if args.savekeras:
         # Keras format
         model.save(os.path.join(model_dir, 'model_tf.keras'))
-    else:
+    if args.saveonnx:
         # ONNX format
         onnx_filename = 'model.onnx'
         input_signature = [tf.TensorSpec((None, 32, 32, 3), tf.float32, name='input')]
