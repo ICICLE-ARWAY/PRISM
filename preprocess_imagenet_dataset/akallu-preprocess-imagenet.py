@@ -5,6 +5,7 @@ import tarfile
 
 import cv2
 import numpy as np
+from PIL.Image import Image
 from tqdm import tqdm
 
 """
@@ -68,6 +69,45 @@ class ImageClassSet:
         except KeyError:
             raise KeyError("The number ID does not exist for of the Image Classes provided!")
 
+def edges(imgPath: str, ratio):
+    # Read an image
+    input_image = cv2.imread(imgPath, cv2.IMREAD_UNCHANGED)
+
+    height = input_image.shape[0]
+    width = input_image.shape[1]
+
+    # Apply canny edge detection
+    canny = cv2.Canny(input_image, 200, 255)  # height by width [h, w]
+    # Finding the non-zero points of canny
+    if width / height > ratio:  # Wider
+        intendedwidth = int(height * ratio)
+        maxintendedwidth = 0
+        maxavgdensity = -1
+        for i in range(width - intendedwidth):
+            density = canny[:, i:i + intendedwidth].sum() / 255
+            if maxavgdensity < density:
+                maxavgdensity = density
+                maxintendedwidth = i
+
+        output_image = input_image[0:height, maxintendedwidth:intendedwidth + maxintendedwidth]
+    elif width / height < ratio:  # Taller
+        intendedheight = int(width / ratio)
+        maxintendedheight = 0
+        maxavgdensity = -1
+        for i in range(height - intendedheight):
+            density = canny[i:i + intendedheight, :].sum() / 255
+            if maxavgdensity < density:
+                maxavgdensity = density
+                maxintendedheight = i
+
+        output_image = input_image[maxintendedheight:intendedheight + maxintendedheight, 0:width]
+    else:  # Already cropped
+        return
+
+    cv2.resize(output_image, (256, 384), interpolation=cv2.INTER_AREA if output_image.shape[0] >= 256 else cv2.INTER_CUBIC)
+
+    # Save image
+    cv2.imwrite(imgPath, output_image)
 
 def main():
     # TODO: ADD ARGS TO DEFINE CONSTANTS
@@ -107,43 +147,37 @@ def main():
             progressbar.update()
 
     # Renaming all the image files & content-aware crop
-    with tqdm(total=c) as progressbar:
-        valmap = open(os.path.join(OUTPUT_FOLDER_LOCATION, "val_map.csv"), "w")
-        testmap = open(os.path.join(OUTPUT_FOLDER_LOCATION, "test_map.csv"), "w")
+    valmap = open(os.path.join(OUTPUT_FOLDER_LOCATION, "val_map.csv"), "w")
+    testmap = open(os.path.join(OUTPUT_FOLDER_LOCATION, "test_map.csv"), "w")
 
+    try:
+        os.mkdir(os.path.join(OUTPUT_FOLDER_LOCATION, "train"))
+        os.mkdir(os.path.join(OUTPUT_FOLDER_LOCATION, "val"))
+        os.mkdir(os.path.join(OUTPUT_FOLDER_LOCATION, "test"))
+    except FileExistsError:
+        pass
+
+    globalcount = 0
+    for folder in os.listdir(os.path.join(OUTPUT_FOLDER_LOCATION, "images")):
+        folderpath = os.path.join(OUTPUT_FOLDER_LOCATION, "images", folder)
         try:
-            os.mkdir(os.path.join(OUTPUT_FOLDER_LOCATION, "train"))
-            os.mkdir(os.path.join(OUTPUT_FOLDER_LOCATION, "val"))
-            os.mkdir(os.path.join(OUTPUT_FOLDER_LOCATION, "test"))
+            os.mkdir(os.path.join(OUTPUT_FOLDER_LOCATION, "train", folder))
+            os.mkdir(os.path.join(OUTPUT_FOLDER_LOCATION, "val", folder))
+            os.mkdir(os.path.join(OUTPUT_FOLDER_LOCATION, "test", folder))
         except FileExistsError:
             pass
 
-        globalcount = 0
-        for folder in os.listdir(os.path.join(OUTPUT_FOLDER_LOCATION, "images")):
-            folderpath = os.path.join(OUTPUT_FOLDER_LOCATION, "images", folder)
-            try:
-                os.mkdir(os.path.join(OUTPUT_FOLDER_LOCATION, "train", folder))
-                os.mkdir(os.path.join(OUTPUT_FOLDER_LOCATION, "val", folder))
-                os.mkdir(os.path.join(OUTPUT_FOLDER_LOCATION, "test", folder))
-            except FileExistsError:
-                pass
+        files = list(os.scandir(folderpath))
+        filecount = len(os.listdir(folderpath))
+        for i in range(0, filecount):
+            # 70% train 10% val 20% test
+            file = files[i]
+            edges(os.path.join(folderpath, file.path.lower()), 3 / 2)
+            os.rename(os.path.join(folderpath, file.path.lower()), os.path.join(OUTPUT_FOLDER_LOCATION, "dataset", folder, f"{globalcount}.jpeg"))
 
-            files = list(os.scandir(folderpath))
-            filecount = len(os.listdir(folderpath))
-            for i in range(0, filecount):
-                # 70% train 10% val 20% test
-                file = files[i]
-
-                if i / filecount < 0.7:
-                    os.rename(os.path.join(folderpath, file.path.lower()), os.path.join(OUTPUT_FOLDER_LOCATION, "train", folder, f"{globalcount}.jpeg"))
-                elif i / filecount < 0.8:
-                    os.rename(os.path.join(folderpath, file), os.path.join(OUTPUT_FOLDER_LOCATION, "val", folder, f"{globalcount}.jpeg"))
-                    valmap.writelines(f"{globalcount},{folder}\n")
-                elif i / filecount < 1:
-                    os.rename(os.path.join(folderpath, file), os.path.join(OUTPUT_FOLDER_LOCATION, "test", folder, f"{globalcount}.jpeg"))
-                    testmap.writelines(f"{globalcount},{folder}\n")
-                globalcount += 1
-            progressbar.update()
+            globalcount += 1
+            if globalcount % 100 == 0:
+                print(str(globalcount) + " finished", end='\r', flush=True)
 
 
 if __name__ == "__main__":
