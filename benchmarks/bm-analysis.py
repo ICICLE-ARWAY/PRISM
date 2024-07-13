@@ -40,7 +40,8 @@ def run_benchmark(cpus, args, partition="shared"):
     bprint(cpus)
 
 def processnames():
-    return str(subprocess.check_output(["squeue", "-u", os.environ["USER"], "-o", "%j"]))
+    # %x.o%A.%a.%N
+    return str(subprocess.check_output(["squeue", "-u", os.environ["USER"], "-o", "%j.o%A"]))
 
 def countbmsrunning():
     return len([m.start() for m in re.finditer("tf2-train-cnn", processnames())])
@@ -85,8 +86,7 @@ def main():
 
     bprint("Benchmarks started.")
 
-    scriptlist = processnames().split("\n")
-    del scriptlist[0]
+    scriptlist = processnames().split("\n")[1:]
 
     wait_for_benchmark_completion()
 
