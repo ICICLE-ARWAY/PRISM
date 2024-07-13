@@ -1,12 +1,12 @@
 #!/usr/bin/env sh
 
-#SBATCH --job-name=tf2-train-cnn-cifar-v1-bm-80-c10-fp32-e42-bs256
+#SBATCH --job-name=tf2-train-cnn-cifar-v1-bm-1-c10-fp32-e42-bs256
 #SBATCH --account=ddp324
 #SBATCH --clusters=expanse
-#SBATCH --partition=shared
+#SBATCH --partition=[|{PARTITION}|]
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=80
+#SBATCH --cpus-per-task=[|{CPUS}|]
 #SBATCH --mem=16G
 #SBATCH --time=00:30:00
 #SBATCH --output=%x.o%A.%a.%N

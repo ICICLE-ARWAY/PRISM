@@ -17,7 +17,16 @@ def get_command_arguments():
     args = parser.parse_args()
     return args
 
-def run_benchmark(cpus):
+def create_benchmark(cpus: int, partition: str):
+    templatefile = open("cpu_benchmarks/tf2-train-cnn-cifar-v1-bm-template.sh", "r")
+    filecontents = templatefile.read()
+    filecontents = filecontents.replace("[|{CPUS}|]", str(cpus))
+    filecontents = filecontents.replace("[|{PARTITION}|]", partition)
+    open(f"cpu_benchmarks/tf2-train-cnn-cifar-v1-bm-{str(cpus)}.sh", "w").write(filecontents)
+
+
+def run_benchmark(cpus, partition="shared"):
+    create_benchmark(cpus, partition)
     script = os.environ["SLURM_SUBMIT_DIR"] + "/cpu_benchmarks/tf2-train-cnn-cifar-v1-bm-" + str(cpus) + ".sh"
     process = subprocess.Popen(["sbatch", script])
     while process.poll() is None:
@@ -25,7 +34,6 @@ def run_benchmark(cpus):
     print(cpus)
 
 def main():
-
     args = get_command_arguments()
     max_cpus_per_task = args.max_cpus_per_task
 
@@ -34,9 +42,11 @@ def main():
     run_benchmark(4)
     run_benchmark(8)
     cpus = 16
-    while cpus <= max_cpus_per_task:
+    while cpus < max_cpus_per_task:
         run_benchmark(cpus)
         cpus += 16
+    if cpus == max_cpus_per_task:
+        run_benchmark(cpus, partition="compute")
 
     print("All benchmarks completed.")
 
