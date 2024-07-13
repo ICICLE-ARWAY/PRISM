@@ -70,6 +70,8 @@ def main():
 
     scriptlist = processnames().split("\n")
 
+    print(processnames())
+
     while processnames().find("tf2-train-cnn") != tasksRun:
         time.sleep(5)
 
