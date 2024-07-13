@@ -47,6 +47,7 @@ def countbmsrunning():
 
 def wait_for_benchmark_completion():
     # Get names of processes running
+    bprint(countbmsrunning())
     while countbmsrunning() != 0:
         time.sleep(15)
 
