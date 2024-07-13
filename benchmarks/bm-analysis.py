@@ -22,6 +22,7 @@ def run_benchmark(cpus):
     process = subprocess.Popen(["sbatch", script])
     while process.poll() is None:
         pass
+    print(cpus)
 
 def main():
 
