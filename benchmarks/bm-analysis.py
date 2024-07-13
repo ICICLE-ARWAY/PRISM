@@ -87,6 +87,7 @@ def main():
     bprint("Benchmarks started.")
 
     scriptlist = processnames().split("\n")[1:]
+    bprint(scriptlist)
 
     wait_for_benchmark_completion()
 
