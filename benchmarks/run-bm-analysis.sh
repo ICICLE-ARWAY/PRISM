@@ -11,6 +11,6 @@
 #SBATCH --time=00:30:00
 #SBATCH --output=%x.o%A.%a.%N
 
-python3 bm-analysis.py
+echo python3 bm-analysis.py
 
 echo "Job completed"

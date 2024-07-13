@@ -68,6 +68,10 @@ def main():
         run_benchmark(cpus, args, partition="compute")
         tasksRun += 1
 
+    print("Attempted task creation")
+
+    print(processnames())
+
     scriptlist = processnames().split("\n")
 
     while processnames().find("tf2-train-cnn") != tasksRun:
