@@ -40,14 +40,14 @@ def run_benchmark(cpus, args, partition="shared"):
     bprint(cpus)
 
 def processnames():
-    return str(subprocess.check_output(["squeue", "-u", "akallu", "-o", "%j"]))
+    return str(subprocess.check_output(["squeue", "-u", os.environ["USER"], "-o", "%j"]))
 
 def countbmsrunning():
     return len([m.start() for m in re.finditer("tf2-train-cnn", processnames())])
 
 def wait_for_benchmark_completion():
     # Get names of processes running
-    while countbmsrunning() != -1:
+    while countbmsrunning() != 0:
         time.sleep(15)
 
 
@@ -97,7 +97,10 @@ def main():
         file = open(prefixed, "r")
         for line in file:
             if line.find("real: "):
-                benchmarkdict[prefixed] = float(line.replace("real: ", "").replace("\n", ""))
+                realnum = float(line.replace("real: ", "").replace("\n", ""))
+                sysnum = float(line.replace("real: ", "").replace("\n", ""))
+                usernum = float(line.replace("real: ", "").replace("\n", ""))
+                benchmarkdict[prefixed] = [realnum, sysnum, usernum]
 
     bprint(benchmarkdict)
 
