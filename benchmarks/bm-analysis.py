@@ -95,10 +95,12 @@ def main():
     benchmarkdict = {}
 
     for scriptname in scriptlist:
+        plist = [filename for filename in os.listdir('.') if filename.startswith(scriptname)]
+        prefixed: str = plist[0]
         bprint(scriptname)
-        bprint(filename)
+        bprint(plist)
+        bprint(prefixed)
         bprint("------------------")
-        prefixed: str = [filename for filename in os.listdir('.') if filename.startswith(scriptname)][0]
         file = open(prefixed, "r")
         realnum = -1
         sysnum = -1
