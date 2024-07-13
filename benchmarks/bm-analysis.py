@@ -37,7 +37,7 @@ def run_benchmark(cpus, args, partition="shared"):
     print(cpus)
 
 def processnames():
-    return str(subprocess.check_output(["squeue", "-u", "$USER", "-o", "%j"]))
+    return str(subprocess.check_output(["squeue", "-u", "akallu", "-o", "%j"]))
 
 def wait_for_benchmark_completion():
     # Get names of processes running
