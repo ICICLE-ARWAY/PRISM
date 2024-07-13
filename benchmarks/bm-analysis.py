@@ -50,6 +50,7 @@ def wait_for_benchmark_completion():
     bprint(countbmsrunning())
     while countbmsrunning() != 0:
         time.sleep(15)
+        bprint(countbmsrunning())
 
 
 def main():
@@ -94,6 +95,9 @@ def main():
     benchmarkdict = {}
 
     for scriptname in scriptlist:
+        bprint(scriptname)
+        bprint(filename)
+        bprint("------------------")
         prefixed: str = [filename for filename in os.listdir('.') if filename.startswith(scriptname)][0]
         file = open(prefixed, "r")
         realnum = -1
