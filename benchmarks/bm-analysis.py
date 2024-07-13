@@ -95,12 +95,18 @@ def main():
     for scriptname in scriptlist:
         prefixed: str = [filename for filename in os.listdir('.') if filename.startswith(scriptname)][0]
         file = open(prefixed, "r")
+        realnum = 0
+        sysnum = 0
+        usernum = 0
+
         for line in file:
-            if line.find("real: "):
-                realnum = float(line.replace("real: ", "").replace("\n", ""))
-                sysnum = float(line.replace("real: ", "").replace("\n", ""))
-                usernum = float(line.replace("real: ", "").replace("\n", ""))
-                benchmarkdict[prefixed] = [realnum, sysnum, usernum]
+            if line.find("real ") != -1:
+                realnum = float(line.replace("real ", "").replace("\n", ""))
+            if line.find("sys ") != -1:
+                sysnum = float(line.replace("sys ", "").replace("\n", ""))
+            if line.find("user ") != -1:
+                usernum = float(line.replace("user ", "").replace("\n", ""))
+        benchmarkdict[prefixed] = [realnum, sysnum, usernum]
 
     bprint(benchmarkdict)
 
