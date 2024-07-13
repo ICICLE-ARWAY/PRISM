@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-#SBATCH --job-name=tf2-train-cnn-cifar-v1-bm-1-c10-fp32-e42-bs256
+#SBATCH --job-name=tf2-train-cnn-cifar-v1-bm-[|{CPUS}|]-c10-fp32-e42-bs256
 #SBATCH --account=ddp324
 #SBATCH --clusters=expanse
 #SBATCH --partition=[|{PARTITION}|]

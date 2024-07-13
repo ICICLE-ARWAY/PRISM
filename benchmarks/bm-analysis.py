@@ -4,6 +4,7 @@ import os
 import argparse
 import sys
 
+
 def get_command_arguments():
     """ Read input variables and parse command-line arguments """
 
@@ -17,6 +18,7 @@ def get_command_arguments():
     args = parser.parse_args()
     return args
 
+
 def create_benchmark(cpus: int, partition: str):
     templatefile = open("cpu_benchmarks/tf2-train-cnn-cifar-v1-bm-template.sh", "r")
     filecontents = templatefile.read()
@@ -25,7 +27,8 @@ def create_benchmark(cpus: int, partition: str):
     open(f"cpu_benchmarks/tf2-train-cnn-cifar-v1-bm-{str(cpus)}.sh", "w").write(filecontents)
 
 
-def run_benchmark(cpus, partition="shared"):
+def run_benchmark(cpus, args, partition="shared"):
+    if args.max_cpus_per_task > cpus: return
     create_benchmark(cpus, partition)
     script = os.environ["SLURM_SUBMIT_DIR"] + "/cpu_benchmarks/tf2-train-cnn-cifar-v1-bm-" + str(cpus) + ".sh"
     process = subprocess.Popen(["sbatch", script])
@@ -33,26 +36,61 @@ def run_benchmark(cpus, partition="shared"):
         pass
     print(cpus)
 
+def processnames():
+    return str(subprocess.check_output(["squeue", "-u", "$USER", "-o", "%j"]))
+
+def wait_for_benchmark_completion():
+    # Get names of processes running
+    while processnames().find("tf2-train-cnn") == -1:
+        time.sleep(15)
+
+
 def main():
     args = get_command_arguments()
     max_cpus_per_task = args.max_cpus_per_task
+    tasksRun = 0
 
-    run_benchmark(1)
-    run_benchmark(2)
-    run_benchmark(4)
-    run_benchmark(8)
+    run_benchmark(1, args)
+    tasksRun += 1
+    run_benchmark(2, args)
+    tasksRun += 1
+    run_benchmark(4, args)
+    tasksRun += 1
+    run_benchmark(8, args)
+    tasksRun += 1
     cpus = 16
     while cpus < max_cpus_per_task:
-        run_benchmark(cpus)
+        run_benchmark(cpus, args)
+        tasksRun += 1
         cpus += 16
     if cpus == max_cpus_per_task:
-        run_benchmark(cpus, partition="compute")
+        run_benchmark(cpus, args, partition="compute")
+        tasksRun += 1
+
+    scriptlist = processnames().split("\n")
+
+    while processnames().find("tf2-train-cnn") != tasksRun:
+        time.sleep(5)
+
+    print("Benchmarks started.")
+
+    wait_for_benchmark_completion()
 
     print("All benchmarks completed.")
 
+    benchmarkdict = {}
+
+    for scriptname in scriptlist:
+        prefixed: str = [filename for filename in os.listdir('.') if filename.startswith(scriptname)][0]
+        file = open(prefixed, "r")
+        for line in file:
+            if line.find("real: "):
+                benchmarkdict[prefixed] = float(line.replace("real: ", "").replace("\n", ""))
+
+    print(benchmarkdict)
+
     return 0
+
 
 if __name__ == '__main__':
     sys.exit(main())
-    
-
