@@ -87,7 +87,7 @@ def main():
     bprint("Benchmarks started.")
 
     bprint(processnames())
-    scriptlist = re.split("\n", processnames())
+    scriptlist = processnames().split("\\n")
     for i in range(0, len(scriptlist)):
         scriptlist[i] = scriptlist[i].strip("\'").strip("b")
     bprint(scriptlist)
