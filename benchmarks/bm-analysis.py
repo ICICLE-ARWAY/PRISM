@@ -50,15 +50,16 @@ def main():
     max_cpus_per_task = args.max_cpus_per_task
     tasksRun = 0
 
-    run_benchmark(1, args)
-    tasksRun += 1
-    run_benchmark(2, args)
-    tasksRun += 1
-    run_benchmark(4, args)
-    tasksRun += 1
-    run_benchmark(8, args)
-    tasksRun += 1
-    cpus = 16
+    # run_benchmark(1, args)
+    # tasksRun += 1
+    # run_benchmark(2, args)
+    # tasksRun += 1
+    # run_benchmark(4, args)
+    # tasksRun += 1
+    # run_benchmark(8, args)
+    # tasksRun += 1
+    # cpus = 16
+    cpus = 32
     while cpus < max_cpus_per_task:
         run_benchmark(cpus, args)
         tasksRun += 1
