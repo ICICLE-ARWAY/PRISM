@@ -86,7 +86,8 @@ def main():
 
     bprint("Benchmarks started.")
 
-    scriptlist = processnames().split("\n")[1:]
+    bprint(processnames())
+    scriptlist = [m.start() for m in re.finditer("tf2-train-cnn", processnames())]
     bprint(scriptlist)
 
     wait_for_benchmark_completion()
