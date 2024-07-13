@@ -28,7 +28,7 @@ def create_benchmark(cpus: int, partition: str):
 
 
 def run_benchmark(cpus, args, partition="shared"):
-    if args.max_cpus_per_task > cpus: return
+    if cpus > args.max_cpus_per_task : return
     create_benchmark(cpus, partition)
     script = os.environ["SLURM_SUBMIT_DIR"] + "/cpu_benchmarks/tf2-train-cnn-cifar-v1-bm-" + str(cpus) + ".sh"
     process = subprocess.Popen(["sbatch", script])
