@@ -18,9 +18,6 @@ def get_command_arguments():
     args = parser.parse_args()
     return args
 
-def bprint(output):
-    subprocess.call(["echo", str(output)])
-
 def create_benchmark(cpus: int, partition: str):
     templatefile = open("cpu_benchmarks/tf2-train-cnn-cifar-v1-bm-template.sh", "r")
     filecontents = templatefile.read()
@@ -36,7 +33,7 @@ def run_benchmark(cpus, args, partition="shared"):
     process = subprocess.Popen(["sbatch", script])
     while process.poll() is None:
         pass
-    bprint(cpus)
+    print(cpus)
 
 def processnames():
     return str(subprocess.check_output(["squeue", "-u", "akallu", "-o", "%j"]))
@@ -70,20 +67,20 @@ def main():
         run_benchmark(cpus, args, partition="compute")
         tasksRun += 1
 
-    bprint("Attempted task creation")
+    print("Attempted task creation")
 
-    bprint(processnames())
+    print(processnames())
 
     scriptlist = processnames().split("\n")
 
     while processnames().find("tf2-train-cnn") != tasksRun:
         time.sleep(5)
 
-    bprint("Benchmarks started.")
+    print("Benchmarks started.")
 
     wait_for_benchmark_completion()
 
-    bprint("All benchmarks completed.")
+    print("All benchmarks completed.")
 
     benchmarkdict = {}
 
@@ -94,7 +91,7 @@ def main():
             if line.find("real: "):
                 benchmarkdict[prefixed] = float(line.replace("real: ", "").replace("\n", ""))
 
-    bprint(benchmarkdict)
+    print(benchmarkdict)
 
     return 0
 
