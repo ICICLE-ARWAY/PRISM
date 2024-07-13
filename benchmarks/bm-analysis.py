@@ -1,3 +1,4 @@
+import re
 import subprocess
 import time
 import os
@@ -74,12 +75,13 @@ def main():
 
     bprint(processnames())
 
-    scriptlist = processnames().split("\n")
-
-    while processnames().find("tf2-train-cnn") != tasksRun:
-        time.sleep(5)
+    while len([m.start() for m in re.finditer("tf2-train-cnn", processnames())]) != tasksRun:
+        time.sleep(1)
 
     bprint("Benchmarks started.")
+
+    scriptlist = processnames().split("\n")
+    del scriptlist[0]
 
     wait_for_benchmark_completion()
 
