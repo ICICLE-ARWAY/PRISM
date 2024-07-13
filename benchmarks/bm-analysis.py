@@ -42,9 +42,12 @@ def run_benchmark(cpus, args, partition="shared"):
 def processnames():
     return str(subprocess.check_output(["squeue", "-u", "akallu", "-o", "%j"]))
 
+def countbmsrunning():
+    return len([m.start() for m in re.finditer("tf2-train-cnn", processnames())])
+
 def wait_for_benchmark_completion():
     # Get names of processes running
-    while processnames().find("tf2-train-cnn") == -1:
+    while countbmsrunning() != -1:
         time.sleep(15)
 
 
@@ -75,7 +78,7 @@ def main():
 
     bprint(processnames())
 
-    while len([m.start() for m in re.finditer("tf2-train-cnn", processnames())]) != tasksRun:
+    while countbmsrunning() != tasksRun:
         time.sleep(1)
 
     bprint("Benchmarks started.")
