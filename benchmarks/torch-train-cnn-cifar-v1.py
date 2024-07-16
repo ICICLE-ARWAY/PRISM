@@ -16,7 +16,7 @@ def get_command_arguments():
     """ Read input variables and parse command-line arguments """
 
     parser = argparse.ArgumentParser(
-        description='Train a simple Convolutional Neural Network to classify CIFAR images.',
+        description='Train a simple Convolutional Neural Network to classify images.',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 

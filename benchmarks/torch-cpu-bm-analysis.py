@@ -11,7 +11,7 @@ def get_command_arguments():
     """ Read input variables and parse command-line arguments """
 
     parser = argparse.ArgumentParser(
-        description='Run CPU benchmarks for TensorFlow 2 CNN on CIFAR-10 dataset',
+        description='Run CPU benchmarks for TensorFlow 2 CNN on an image dataset',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
@@ -24,17 +24,17 @@ def bprint(output):
     subprocess.call(["echo", str(output)])
 
 def create_benchmark(cpus: int, partition: str):
-    templatefile = open("cpu_benchmarks/tf2-train-cnn-cifar-v1-bm-template.sh", "r")
+    templatefile = open("cpu_benchmarks/torch-train-cnn-cifar-v1-bm-template.sh", "r")
     filecontents = templatefile.read()
     filecontents = filecontents.replace("[|{CPUS}|]", str(cpus))
     filecontents = filecontents.replace("[|{PARTITION}|]", partition)
-    open(f"cpu_benchmarks/tf2-train-cnn-cifar-v1-bm-{str(cpus)}.sh", "w").write(filecontents)
+    open(f"cpu_benchmarks/torch-train-cnn-cifar-v1-bm-{str(cpus)}.sh", "w").write(filecontents)
 
 
 def run_benchmark(cpus, args, partition="shared"):
     if cpus > args.max_cpus_per_task : return
     create_benchmark(cpus, partition)
-    script = os.environ["SLURM_SUBMIT_DIR"] + "/cpu_benchmarks/tf2-train-cnn-cifar-v1-bm-" + str(cpus) + ".sh"
+    script = os.environ["SLURM_SUBMIT_DIR"] + "/cpu_benchmarks/torch-train-cnn-cifar-v1-bm-" + str(cpus) + ".sh"
     process = subprocess.Popen(["sbatch", script])
     while process.poll() is None:
         pass
@@ -45,7 +45,7 @@ def processnames():
     return str(subprocess.check_output(["squeue", "-u", os.environ["USER"], "-o", "%j.o%A"]))
 
 def countbmsrunning():
-    return len([m.start() for m in re.finditer("tf2-train-cnn", processnames())])
+    return len([m.start() for m in re.finditer("torch-train-cnn", processnames())])
 
 def wait_for_benchmark_completion():
     # Get names of processes running
@@ -91,7 +91,7 @@ def main():
     scriptlist = processnames().split("\\n")
     for i in range(0, len(scriptlist)):
         scriptlist[i] = scriptlist[i].strip("\'").strip("b")
-    p = re.compile('tf2-train-cnn')
+    p = re.compile('torch-train-cnn')
     scriptlist = [x for x in scriptlist if p.match(x)]
     bprint(scriptlist)
 
@@ -124,7 +124,6 @@ def main():
     outfile.writelines(f"cores,real,sys,user\n")
     for n in benchmarkdict.keys():
         outfile.writelines(f"{n},{benchmarkdict[n][0]},{benchmarkdict[n][1]},{benchmarkdict[n][2]}\n")
-    outfile.flush()
 
     return 0
 
