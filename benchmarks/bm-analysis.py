@@ -90,6 +90,8 @@ def main():
     scriptlist = processnames().split("\\n")
     for i in range(0, len(scriptlist)):
         scriptlist[i] = scriptlist[i].strip("\'").strip("b")
+    p = re.compile('tf2-train-cnn')
+    scriptlist = [x for x in scriptlist if p.match(x)]
     bprint(scriptlist)
 
     wait_for_benchmark_completion()
@@ -119,6 +121,7 @@ def main():
                 usernum = float(line.replace("user ", "").replace("\n", ""))
         if realnum != -1 and sysnum != -1 and usernum != -1:
             benchmarkdict[prefixed] = [realnum, sysnum, usernum]
+            bprint([realnum, sysnum, usernum])
 
     bprint(benchmarkdict)
 
