@@ -183,19 +183,18 @@ def main():
     trainer.fit(model, datamodule=cifar_datamodule)
     trainer.test(model, dataloaders=cifar_datamodule, verbose=True)
 
-    modelDir = "model_exports/version_" + str(trainer.logger.version)  # Create str ref of model directory
     fake_input = torch.rand((batch_size, 3, 32, 32), dtype=tf_float)  # Fake input to emulate how actual input would be given
-    try:
-        os.mkdir("model_exports")  # try to make model_exports folder
-    except FileExistsError:
-        pass
-    os.mkdir(modelDir)  # make directory in model_exports for this iteration of the model
+
+    modelDir = "model_exports/version_torch"  # Create str ref of model directory
+    version = str(trainer.logger.version)
+
+    os.makedirs(modelDir, exist_ok = True) 
 
     # export ONNX and PyTorch models w/ builtin versions
     if args.saveonnx:
-        torch.onnx.export(model.eval(), fake_input, f"{modelDir}/model.onnx", input_names=["input"], output_names=["output"])
+        torch.onnx.export(model.eval(), fake_input, f"{modelDir}/{version}_model.onnx", input_names=["input"], output_names=["output"])
     if args.savepytorch:
-        torch.save(model.eval(), f"{modelDir}/model.pt")
+        torch.save(model.eval(), f"{modelDir}/{version}_model.pt")
 
     return 0
 
