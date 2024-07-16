@@ -27,7 +27,6 @@ def get_command_arguments():
     parser.add_argument('-a', '--accelerator', type=str, default='auto', choices=['auto', 'cpu', 'gpu', 'hpu', 'tpu'], help='accelerator')
     parser.add_argument('-w', '--num_workers', type=int, default=0, help='number of workers')
     parser.add_argument('-m', '--model_file', type=str, default="", help="pre-existing model file if needing to further train model")
-    parser.add_argument('-s', '--save_model', type=str, default="onnx", choices=["onnx", "pt"], help="save model as ONNX or PyTorch model file")
     parser.add_argument('-P', '--savepytorch', type=bool, default=False, help="save model as keras model file")
     parser.add_argument('-O', '--saveonnx', type=bool, default=False, help="save model as ONNX model file")
 
@@ -84,31 +83,18 @@ class CNN(pl.LightningModule):
         self.val_acc = Accuracy(num_classes=classes, task='MULTICLASS')
 
         self.cnn_block = torch.nn.Sequential(
-            torch.nn.Conv2d(3, 64, kernel_size=3, padding=1),
-            torch.nn.BatchNorm2d(64),
+            torch.nn.Conv2d(in_channels=3, out_channels=32, kernel_size=3),
             torch.nn.ReLU(),
-            torch.nn.Conv2d(64, 128, kernel_size=3, padding=1),
-            torch.nn.BatchNorm2d(128),
+            torch.nn.MaxPool2d(kernel_size=2),
+            torch.nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3),
             torch.nn.ReLU(),
-            torch.nn.MaxPool2d(kernel_size=2, stride=2),
-            torch.nn.Conv2d(128, 128, kernel_size=3, padding=1),
-            torch.nn.BatchNorm2d(128),
+            torch.nn.MaxPool2d(kernel_size=2),
+            torch.nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3),
             torch.nn.ReLU(),
-            torch.nn.Conv2d(128, 128, kernel_size=3, padding=1),
-            torch.nn.BatchNorm2d(128),
-            torch.nn.ReLU(),
-            torch.nn.MaxPool2d(kernel_size=2, stride=2),
-            torch.nn.Conv2d(128, 128, kernel_size=3, padding=1),
-            torch.nn.BatchNorm2d(128),
-            torch.nn.ReLU(),
-            torch.nn.Dropout(0.7),
-            torch.nn.Conv2d(128, 128, kernel_size=3, padding=1),
-            torch.nn.BatchNorm2d(128),
-            torch.nn.ReLU(),
-            torch.nn.MaxPool2d(kernel_size=2, stride=2),
-            torch.nn.AdaptiveAvgPool2d((1, 1)),
             torch.nn.Flatten(),
-            torch.nn.Linear(128, classes)
+            torch.nn.Linear(64 * 4 * 4, 64),
+            torch.nn.ReLU(),
+            torch.nn.Linear(64, classes)
         )
 
     def forward(self, x):
@@ -208,9 +194,9 @@ def main():
     # export ONNX and PyTorch models w/ builtin versions
     if args.saveonnx:
         torch.onnx.export(model.eval(), fake_input, f"{modelDir}/model.onnx", input_names=["input"], output_names=["output"])
-    if args.savetorch:
+    if args.savepytorch:
         torch.save(model.eval(), f"{modelDir}/model.pt")
-        
+
     return 0
 
 

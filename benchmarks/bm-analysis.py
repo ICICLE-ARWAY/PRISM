@@ -103,10 +103,6 @@ def main():
     for scriptname in scriptlist:
         plist = [filename for filename in os.listdir('.') if filename.startswith(scriptname)]
         prefixed: str = plist[0]
-        bprint(scriptname)
-        bprint(plist)
-        bprint(prefixed)
-        bprint("------------------")
         file = open(prefixed, "r")
         realnum = -1
         sysnum = -1
@@ -121,7 +117,6 @@ def main():
                 usernum = float(line.replace("user ", "").replace("\n", ""))
         if realnum != -1 and sysnum != -1 and usernum != -1:
             benchmarkdict[prefixed] = [realnum, sysnum, usernum]
-            bprint([realnum, sysnum, usernum])
 
     bprint(benchmarkdict)
 
