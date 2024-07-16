@@ -4,8 +4,6 @@ import re
 import tarfile
 
 import cv2
-import numpy as np
-from PIL.Image import Image
 from tqdm import tqdm
 
 """
@@ -104,7 +102,7 @@ def edges(imgPath: str, ratio):
     else:  # Already cropped
         return
 
-    cv2.resize(output_image, (256, 384), interpolation=cv2.INTER_AREA if output_image.shape[0] >= 256 else cv2.INTER_CUBIC)
+    cv2.resize(output_image, (128, 192), interpolation=cv2.INTER_AREA if output_image.shape[0] >= 128 else cv2.INTER_CUBIC)
 
     # Save image
     cv2.imwrite(imgPath, output_image)

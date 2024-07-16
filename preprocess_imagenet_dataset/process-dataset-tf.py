@@ -4,7 +4,7 @@ import tensorflow
 def createdataset(root: str):
     rawds = tensorflow.keras.utils.image_dataset_from_directory(
         root,
-        image_size=(256, 256),
+        image_size=(128, 192),
         seed=6059
     )
     trainds, testvalds = tensorflow.keras.utils.split_dataset(rawds, left_size=0.7, right_size=0.3)

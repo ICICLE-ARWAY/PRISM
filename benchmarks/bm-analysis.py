@@ -4,6 +4,7 @@ import time
 import os
 import argparse
 import sys
+import uuid
 
 
 def get_command_arguments():
@@ -119,6 +120,10 @@ def main():
             benchmarkdict[prefixed] = [realnum, sysnum, usernum]
 
     bprint(benchmarkdict)
+    outfile = open(str(uuid.uuid4()) + ".csv", "w")
+    outfile.writelines(f"cores,real,sys,user\n")
+    for n in benchmarkdict.keys():
+        outfile.writelines(f"{n},{benchmarkdict[n][0]},{benchmarkdict[n][1]},{benchmarkdict[n][2]}\n")
 
     return 0
 
