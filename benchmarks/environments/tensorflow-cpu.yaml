@@ -10,5 +10,6 @@ dependencies:
   - opencv
   - onnx
   - onnxruntime
+  - tf2onnx
   - pip:
       - onnxscript
