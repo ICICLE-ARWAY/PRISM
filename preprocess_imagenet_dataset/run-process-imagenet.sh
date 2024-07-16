@@ -3,7 +3,7 @@
 #SBATCH --job-name=run-processs-imagenet
 #SBATCH --account=ddp324
 #SBATCH --clusters=expanse
-#SBATCH --partition=shared
+#SBATCH --partition=compute
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --gpus=3
