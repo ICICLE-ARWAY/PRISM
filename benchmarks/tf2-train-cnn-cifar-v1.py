@@ -7,8 +7,8 @@ import sys
 
 import tensorflow as tf
 import keras
-# import onnx
-# import tf2onnx
+import onnx
+import tf2onnx
 
 def get_command_arguments():
     """ Read input variables and parse command-line arguments """
@@ -156,27 +156,25 @@ def main():
 
     # Save the model in the chosen format 
     # Support for .tf, .h5, .keras, and .onnx as of now
-    # Save the model in the chosen format
-    model_dir = 'saved_model_tf' + os.environ.get('SLURM_JOB_ID', 'local')
-    os.makedirs(model_dir, exist_ok=True)
+    modelDir = "model_exports/version_tf2"
+    version = os.environ.get('SLURM_JOB_ID', 'local')
+    os.makedirs(modelDir, exist_ok=True)  
 
     if args.savetensorflow:
         # Tensorflow Format
-        tf.saved_model.save(model, os.path.join(model_dir, 'model_tf'))
+        tf.saved_model.save(model, os.path.join(modelDir, f'{version}_model'))
     if args.saveh5:
         # HDF5 Format
-        model.save(os.path.join(model_dir, 'model_tf.h5'))
+        model.save(os.path.join(modelDir, f'{version}_model.h5'))
     if args.savekeras:
         # Keras format
-        model.save(os.path.join(model_dir, 'model_tf.keras'))
-    # if args.saveonnx:
-    #     # ONNX format
-    #     onnx_filename = 'model.onnx'
-    #     input_signature = [tf.TensorSpec((None, 32, 32, 3), tf.float32, name='input')]
-    #     model.output_names=['output']
-    #     onnx_model, _ = tf2onnx.convert.from_keras(model, input_signature=input_signature, opset=13)
-    #     onnx.save(onnx_model, onnx_filename)
-    #     print(f"Model saved in ONNX format: {onnx_filename}")
+        model.save(os.path.join(modelDir, f'{version}_model.keras'))
+    if args.saveonnx:
+        # ONNX format
+        input_signature = [tf.TensorSpec((None, 32, 32, 3), tf.float32, name='input')]
+        model.output_names=['output']
+        onnx_model, _ = tf2onnx.convert.from_keras(model, input_signature=input_signature, opset=13)
+        onnx.save(onnx_model, f'{modelDir}/{version}_model.onnx')
 
     
     return 0
