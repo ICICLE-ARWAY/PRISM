@@ -62,8 +62,6 @@ else
   conda install -y conda-pack
 
   echo "Packing the conda environment and caching it to ${CONDA_CACHE_DIR} ..."
-  conda pack -n "${CONDA_ENV_NAME}" -o "${CONDA_ENV_NAME}.tar.gz"
-  cp "${CONDA_ENV_NAME}.tar.gz" "${CONDA_CACHE_DIR}"
   conda activate "${CONDA_ENV_NAME}"
 
 fi
