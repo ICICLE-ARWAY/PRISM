@@ -18,15 +18,13 @@ Col 1: ID of Classes (must be alphanumeric snake case)
 Row 2 -> ?: Subclass ID (must start with n and follow with 8 hindu-arabic numerals)
 """
 
-PREPROCESSOR_CONFIG_CSV_LOCATION = "C:\\Users\\anish\\PycharmProjects\\ICICLE-ML-BENCHMARK\\preprocess_imagenet_dataset\\ImageNet2SDSC20Config.csv"  # Path
+PREPROCESSOR_CONFIG_CSV_LOCATION = "\\Users\\anish\\PycharmProjects\\ICICLE-ML-BENCHMARK\\preprocess_imagenet_dataset\\ImageNet2SDSC20Config.csv"  # Path
 
 # The output folder is where the sub-folders containing the images from the classes will go
-OUTPUT_FOLDER_LOCATION = "D:\\ImageNetDB\\processed"  # Path
+OUTPUT_FOLDER_LOCATION = "\\expanse\\lustre\\projects\\ddp324\\akallu\\images\\processed"  # Path
 
 # The file must end in .tar
-ILSVRC2012_LOCATION = "D:\\ImageNetDB\\ILSVRC2012_img_train.tar"  # Path
-
-SYNSET_MAPPING_LOCATION = "D:\\ImageNetDB\\raw\\LOC_synset_mapping.txt"
+ILSVRC2012_LOCATION = "\\expanse\\lustre\\projects\\ddp324\\akallu\\images\\ILSVRC2012_img_train.tar"  # Path
 
 
 class ImageClass:
