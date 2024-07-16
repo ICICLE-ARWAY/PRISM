@@ -150,11 +150,13 @@ def create_model(height, width, channels, classes):
 
 def load_model(model_file, model_format):
     """ Load a model from file in a specific format."""
-    return model
+    model = None
+    return model 
 
 
 def save_model(model, model_file, model_format):
     """ Save a mode to a file in a specific format."""
+    exit_val = None
     return exit_val
 
 

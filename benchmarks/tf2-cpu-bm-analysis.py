@@ -11,7 +11,7 @@ def get_command_arguments():
     """ Read input variables and parse command-line arguments """
 
     parser = argparse.ArgumentParser(
-        description='Run CPU benchmarks for TensorFlow 2 CNN on CIFAR-10 dataset',
+        description='Run CPU benchmarks for TensorFlow 2 CNN on an image dataset',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
