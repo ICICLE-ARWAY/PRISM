@@ -37,7 +37,6 @@ module list
 
 cd "${LOCAL_SCRATCH_DIR}"
 
-md5sum -c "${CONDA_ENV_YAML}.md5"
 if [[ "${?}" -eq 0 ]]; then
 
   echo "Unpacking existing the conda environment to ${LOCAL_SCRATCH_DIR} ..."
@@ -66,7 +65,6 @@ else
   echo "Packing the conda environment and caching it to ${CONDA_CACHE_DIR} ..."
   conda pack -n "${CONDA_ENV_NAME}" -o "${CONDA_ENV_NAME}.tar.gz"
   cp "${CONDA_ENV_NAME}.tar.gz" "${CONDA_CACHE_DIR}"
-  md5sum "${CONDA_ENV_YAML}" > "${CONDA_ENV_YAML}.md5"
   conda activate "${CONDA_ENV_NAME}"
 
 fi
