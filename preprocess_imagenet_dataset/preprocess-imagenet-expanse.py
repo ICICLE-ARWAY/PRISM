@@ -18,7 +18,7 @@ Col 1: ID of Classes (must be alphanumeric snake case)
 Row 2 -> ?: Subclass ID (must start with n and follow with 8 hindu-arabic numerals)
 """
 
-PREPROCESSOR_CONFIG_CSV_LOCATION = "\\Users\\anish\\PycharmProjects\\ICICLE-ML-BENCHMARK\\preprocess_imagenet_dataset\\ImageNet2SDSC20Config.csv"  # Path
+PREPROCESSOR_CONFIG_CSV_LOCATION = "\\expanse\\lustre\\projects\\ddp324\\akallu\\ICICLE-ML-BENCHMARK\\preprocess_imagenet_dataset\\ImageNet2SDSC20Config.csv"  # Path
 
 # The output folder is where the sub-folders containing the images from the classes will go
 OUTPUT_FOLDER_LOCATION = "\\expanse\\lustre\\projects\\ddp324\\akallu\\images\\processed"  # Path
@@ -160,6 +160,7 @@ def main():
             os.mkdir(os.path.join(OUTPUT_FOLDER_LOCATION, "train", folder))
             os.mkdir(os.path.join(OUTPUT_FOLDER_LOCATION, "val", folder))
             os.mkdir(os.path.join(OUTPUT_FOLDER_LOCATION, "test", folder))
+            os.mkdir(os.path.join(OUTPUT_FOLDER_LOCATION, "dataset", folder))
         except FileExistsError:
             pass
 
@@ -169,6 +170,8 @@ def main():
             # 70% train 10% val 20% test
             file = files[i]
             edges(os.path.join(folderpath, file.path.lower()), 3 / 2)
+            if not os.path.isdir(os.path.join(OUTPUT_FOLDER_LOCATION, "dataset", folder)):
+                os.mkdir(os.path.join(OUTPUT_FOLDER_LOCATION, "dataset", folder))
             os.rename(os.path.join(folderpath, file.path.lower()), os.path.join(OUTPUT_FOLDER_LOCATION, "dataset", folder, f"{globalcount}.jpeg"))
 
             globalcount += 1
