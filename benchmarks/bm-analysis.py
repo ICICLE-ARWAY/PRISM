@@ -124,6 +124,7 @@ def main():
     outfile.writelines(f"cores,real,sys,user\n")
     for n in benchmarkdict.keys():
         outfile.writelines(f"{n},{benchmarkdict[n][0]},{benchmarkdict[n][1]},{benchmarkdict[n][2]}\n")
+    outfile.flush()
 
     return 0
 
