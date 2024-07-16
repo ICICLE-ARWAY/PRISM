@@ -39,6 +39,8 @@ cd "${LOCAL_SCRATCH_DIR}"
 if [[ "${?}" -eq 0 ]]; then
 
   echo "Unpacking existing the conda environment to ${LOCAL_SCRATCH_DIR} ..."
+  cp "${CONDA_CACHE_DIR}/${CONDA_ENV_NAME}.tar.gz" ./
+  tar -xf "${CONDA_ENV_NAME}.tar.gz"
   source bin/activate
   conda-unpack
 
