@@ -7,8 +7,8 @@ import sys
 
 import tensorflow as tf
 import keras
-# import onnx
-# import tf2onnx
+import onnx
+import tf2onnx
 
 def get_command_arguments():
     """ Read input variables and parse command-line arguments """
@@ -169,14 +169,13 @@ def main():
     if args.savekeras:
         # Keras format
         model.save(os.path.join(model_dir, 'model_tf.keras'))
-    # if args.saveonnx:
-    #     # ONNX format
-    #     onnx_filename = 'model.onnx'
-    #     input_signature = [tf.TensorSpec((None, 32, 32, 3), tf.float32, name='input')]
-    #     model.output_names=['output']
-    #     onnx_model, _ = tf2onnx.convert.from_keras(model, input_signature=input_signature, opset=13)
-    #     onnx.save(onnx_model, onnx_filename)
-    #     print(f"Model saved in ONNX format: {onnx_filename}")
+    if args.saveonnx:
+        # ONNX format
+        onnx_filename = 'model.onnx'
+        input_signature = [tf.TensorSpec((None, 32, 32, 3), tf.float32, name='input')]
+        model.output_names=['output']
+        onnx_model, _ = tf2onnx.convert.from_keras(model, input_signature=input_signature, opset=13)
+        onnx.save(onnx_model, onnx_filename)
 
     
     return 0
