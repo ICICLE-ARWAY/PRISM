@@ -131,7 +131,7 @@ def main():
                     member = photoset.getmember(subclass + ".tar")
                 except KeyError:
                     raise Exception(subclass + " is not a valid ILSVRC category!")
-                photoset.extractall(members=[member], path=OUTPUT_FOLDER_LOCATION + "\\tarfiles")
+                photoset.extractall(members=[member], path=OUTPUT_FOLDER_LOCATION + "/tarfiles")
                 processedmembers.append(member)
             progressbar.update()
 
