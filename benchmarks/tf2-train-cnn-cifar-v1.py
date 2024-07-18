@@ -81,7 +81,7 @@ def create_model(classes, args):
             args.accelerator = 'TPU'
         else:
             args.accelerator = 'CPU'
-    
+
     args.accelerator = args.accelerator.upper()
     tf.debugging.set_log_device_placement(True)
     accelorators = tf.config.list_logical_devices(args.accelerator)
@@ -89,7 +89,7 @@ def create_model(classes, args):
 
     with strategy.scope():
         model = keras.Sequential([
-        keras.layers.InputLayer(input_shape=(32, 32, 3)),
+        keras.layers.InputLayer(input_shape=(128, 192, 3)),
         keras.layers.Conv2D(32, (3, 3), activation='relu'),
         keras.layers.MaxPooling2D((2, 2)),
         keras.layers.Conv2D(64, (3, 3), activation='relu'),
@@ -99,7 +99,7 @@ def create_model(classes, args):
         keras.layers.Dense(64, activation='relu'),
         keras.layers.Dense(classes),
         ])
-         
+
         model.compile(
             optimizer=keras.optimizers.Adam(),
             loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
