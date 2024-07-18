@@ -1,0 +1,11 @@
+name: tensorflow-cpu
+
+channels:
+  - defaults
+  - conda-forge
+
+dependencies:
+  - pip
+  - pip:
+    - opencv-python
+    - tqdm
