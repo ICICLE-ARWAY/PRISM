@@ -1,15 +1,32 @@
 #%%
 import argparse
+import math
 import os
 import sys
 
 import torch
-from torchvision.datasets import CIFAR100, CIFAR10
-from torchvision.transforms import ToTensor
-from torch.utils.data import TensorDataset
+from torchvision import datasets
+from torchvision.datasets import CIFAR100, CIFAR10, ImageFolder
+from torchvision.transforms import ToTensor, transforms
+from torch.utils.data import TensorDataset, Dataset
 from torchmetrics import Accuracy
 import lightning as pl
 import numpy as np
+
+
+class SDSCSubset(Dataset):
+    def __init__(self, subset, transform=None):
+        self.subset = subset
+        self.transform = transform
+
+    def __getitem__(self, index):
+        x, y = self.subset[index]
+        if self.transform:
+            x = self.transform(x)
+        return x, y
+
+    def __len__(self):
+        return len(self.subset)
 
 # %%
 def get_command_arguments():
@@ -24,6 +41,8 @@ def get_command_arguments():
     parser.add_argument('-p', '--precision', type=str, default='fp32', choices=['bf16', 'fp16', 'fp32', 'fp64'], help='floating-point precision')
     parser.add_argument('-e', '--epochs', type=int, default=42, help='number of training epochs')
     parser.add_argument('-b', '--batch_size', type=int, default=256, help='batch size')
+    parser.add_argument('-H', '--height', type=int, default=128, help='img height')
+    parser.add_argument('-W', '--width', type=int, default=192, help='img width')
     parser.add_argument('-a', '--accelerator', type=str, default='auto', choices=['auto', 'cpu', 'gpu', 'hpu', 'tpu'], help='accelerator')
     parser.add_argument('-w', '--num_workers', type=int, default=0, help='number of workers')
     parser.add_argument('-m', '--model_file', type=str, default="", help="pre-existing model file if needing to further train model")
@@ -33,44 +52,53 @@ def get_command_arguments():
     args = parser.parse_args()
     return args
 
+
+def createdataset(root: str, dtype):
+    dataset: ImageFolder = datasets.ImageFolder(root)
+    dstuple = torch.utils.data.random_split(dataset, [0.7, 0.2, 0.1], generator=torch.Generator().manual_seed(6059))
+    trainds: SDSCSubset = SDSCSubset(dstuple[0], transforms.Compose([transforms.CenterCrop([128, 192]), transforms.PILToTensor(), transforms.ConvertImageDtype(dtype)]))
+    testds: SDSCSubset = SDSCSubset(dstuple[1], transforms.Compose([transforms.CenterCrop([128, 192]), transforms.PILToTensor(), transforms.ConvertImageDtype(dtype)]))
+    valds: SDSCSubset = SDSCSubset(dstuple[2], transforms.Compose([transforms.CenterCrop([128, 192]), transforms.PILToTensor(), transforms.ConvertImageDtype(dtype)]))
+    return trainds, testds, valds
+
+
 #%%               
 def create_datasets(classes, dtype):
-    """ Create CIFAR training and test datasets """
+    # if classes == 100:
+    #         train_dataset = CIFAR100(root='./data', transform=ToTensor(), train=True, download=True)
+    #         test_dataset = CIFAR100(root='./data', transform=ToTensor(), train=False, download=True)
+    #     else: # classes == 10
+    #         train_dataset = CIFAR10(root='./data', transform=ToTensor(), train=True, download=True)
+    #         test_dataset = CIFAR10(root='./data', transform=ToTensor(), train=False, download=True)
+    #
+    #     # Converting to respective tensors for analysis and building datasets
+    #     x_train, y_train = np.array(train_dataset.data), np.array(train_dataset.targets)
+    #     x_test, y_test = np.array(test_dataset.data), np.array(test_dataset.targets)
+    #
+    #     # Verify training and test image dataset sizes
+    #     assert x_train.shape == (50000, 32, 32, 3)
+    #     assert y_train.shape == (50000,)
+    #     assert x_test.shape == (10000, 32, 32, 3)
+    #     assert y_test.shape == (10000,)
+    #
+    #     # Normalize the 8-bit (3-channel) RGB image pixel data between 0.0
+    #     # and 1.0; also converts datatype from numpy.uint8 to numpy.float64
+    #     x_train = x_train / 255.0
+    #     x_test = x_test / 255.0
+    #
+    #     # Convert from NumPy arrays to PyTorch tensors
+    #     x_train = torch.tensor(data=x_train, dtype=dtype).permute(0, 3, 1, 2)
+    #     y_train = torch.tensor(data=y_train, dtype=torch.uint8)
+    #     x_test = torch.tensor(data=x_test, dtype=dtype).permute(0, 3, 1, 2)
+    #     y_test = torch.tensor(data=y_test, dtype=torch.uint8)
+    #
+    #     # Construct PyTorch datasets
+    #     train_dataset = TensorDataset(x_train, y_train)
+    #     test_dataset = TensorDataset(x_test, y_test)
+    #
+    #     return train_dataset, test_dataset, test_dataset
 
-    # Download training and test image datasets
-    if classes == 100:
-        train_dataset = CIFAR100(root='./data', transform=ToTensor(), train=True, download=True)
-        test_dataset = CIFAR100(root='./data', transform=ToTensor(), train=False, download=True)
-    else: # classes == 10
-        train_dataset = CIFAR10(root='./data', transform=ToTensor(), train=True, download=True)
-        test_dataset = CIFAR10(root='./data', transform=ToTensor(), train=False, download=True)
-
-    # Converting to respective tensors for analysis and building datasets
-    x_train, y_train = np.array(train_dataset.data), np.array(train_dataset.targets)
-    x_test, y_test = np.array(test_dataset.data), np.array(test_dataset.targets)
-
-    # Verify training and test image dataset sizes
-    assert x_train.shape == (50000, 32, 32, 3)
-    assert y_train.shape == (50000,)
-    assert x_test.shape == (10000, 32, 32, 3)
-    assert y_test.shape == (10000,)
-
-    # Normalize the 8-bit (3-channel) RGB image pixel data between 0.0 
-    # and 1.0; also converts datatype from numpy.uint8 to numpy.float64
-    x_train = x_train / 255.0
-    x_test = x_test / 255.0
-
-    # Convert from NumPy arrays to PyTorch tensors
-    x_train = torch.tensor(data=x_train, dtype=dtype).permute(0, 3, 1, 2)
-    y_train = torch.tensor(data=y_train, dtype=torch.uint8)
-    x_test = torch.tensor(data=x_test, dtype=dtype).permute(0, 3, 1, 2)
-    y_test = torch.tensor(data=y_test, dtype=torch.uint8)
-
-    # Construct PyTorch datasets
-    train_dataset = TensorDataset(x_train, y_train)
-    test_dataset = TensorDataset(x_test, y_test)
-
-    return train_dataset, test_dataset
+    return createdataset("D:\\ImageNetDB\\processed\\dataset", dtype)
 
 #%%
 class CNN(pl.LightningModule):
@@ -82,6 +110,9 @@ class CNN(pl.LightningModule):
         self.test_acc = Accuracy(num_classes=classes, task='MULTICLASS')
         self.val_acc = Accuracy(num_classes=classes, task='MULTICLASS')
 
+        newheight = math.floor(0.5 * (math.floor(0.5 * (args.height - 2)) - 2)) - 2
+        newwidth = math.floor(0.5 * (math.floor(0.5 * (args.width - 2)) - 2)) - 2
+
         self.cnn_block = torch.nn.Sequential(
             torch.nn.Conv2d(in_channels=3, out_channels=32, kernel_size=3),
             torch.nn.ReLU(),
@@ -92,7 +123,7 @@ class CNN(pl.LightningModule):
             torch.nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3),
             torch.nn.ReLU(),
             torch.nn.Flatten(),
-            torch.nn.Linear(64 * 4 * 4, 64),
+            torch.nn.Linear(64 * (newwidth) * (newheight), 64),
             torch.nn.ReLU(),
             torch.nn.Linear(64, classes)
         )
@@ -167,10 +198,10 @@ def main():
         torch.set_float32_matmul_precision('high')
 
     # Create training and test datasets
-    train_dataset, test_dataset = create_datasets(classes, dtype=tf_float)
+    train_dataset, test_dataset, val_dataset = create_datasets(classes, dtype=tf_float)
 
     # Prepare the datasets for training and evaluation
-    cifar_datamodule = pl.LightningDataModule.from_datasets(train_dataset=train_dataset, num_workers=args.num_workers, batch_size=batch_size, val_dataset=test_dataset, test_dataset=test_dataset)
+    cifar_datamodule = pl.LightningDataModule.from_datasets(train_dataset=train_dataset, num_workers=args.num_workers, batch_size=batch_size, val_dataset=val_dataset, test_dataset=test_dataset)
 
     # Create model
     if args.model_file != "":
@@ -184,7 +215,7 @@ def main():
     trainer.test(model, dataloaders=cifar_datamodule, verbose=True)
 
     modelDir = "model_exports/version_" + str(trainer.logger.version)  # Create str ref of model directory
-    fake_input = torch.rand((batch_size, 3, 32, 32), dtype=tf_float)  # Fake input to emulate how actual input would be given
+    fake_input = torch.rand((batch_size, 3, args.height, args.width), dtype=tf_float)  # Fake input to emulate how actual input would be given
     try:
         os.mkdir("model_exports")  # try to make model_exports folder
     except FileExistsError:
