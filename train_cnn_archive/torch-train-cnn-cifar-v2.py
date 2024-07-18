@@ -126,9 +126,7 @@ class CNN(pl.LightningModule):
         self.test_acc = Accuracy(num_classes=classes, task='MULTICLASS')
         self.val_acc = Accuracy(num_classes=classes, task='MULTICLASS')
 
-        const_manip = 1
-        linear_shape = args.height * args.width * args.channels * const_manip
-
+        #tensor format: [batch_size, channels, height, width]
         self.cnn_block = torch.nn.Sequential(
             torch.nn.Conv2d(in_channels=3, out_channels=32, kernel_size=3),
             torch.nn.ReLU(),
