@@ -2,6 +2,7 @@ import csv
 import os.path
 import re
 import tarfile
+import time
 
 import cv2
 from tqdm import tqdm
@@ -21,10 +22,10 @@ Row 2 -> ?: Subclass ID (must start with n and follow with 8 hindu-arabic numera
 PREPROCESSOR_CONFIG_CSV_LOCATION = "\\Users\\anish\\PycharmProjects\\ICICLE-ML-BENCHMARK\\preprocess_imagenet_dataset\\ImageNet2SDSC20Config.csv"  # Path
 
 # The output folder is where the sub-folders containing the images from the classes will go
-OUTPUT_FOLDER_LOCATION = "\\expanse\\lustre\\projects\\ddp324\\akallu\\images\\processed"  # Path
+OUTPUT_FOLDER_LOCATION = "D:\\ImageNetDB\\processed"  # Path
 
 # The file must end in .tar
-ILSVRC2012_LOCATION = "\\expanse\\lustre\\projects\\ddp324\\akallu\\images\\ILSVRC2012_img_train.tar"  # Path
+ILSVRC2012_LOCATION = "D:\\ImageNetDB\\ILSVRC2012_img_train.tar"  # Path
 
 
 class ImageClass:
@@ -100,10 +101,10 @@ def edges(imgPath: str, ratio):
     else:  # Already cropped
         return
 
-    cv2.resize(output_image, (128, 192), interpolation=cv2.INTER_AREA if output_image.shape[0] >= 128 else cv2.INTER_CUBIC)
+    resized_output = cv2.resize(output_image, (192, 128), interpolation=cv2.INTER_AREA if output_image.shape[0] >= 128 else cv2.INTER_CUBIC)
 
     # Save image
-    cv2.imwrite(imgPath, output_image)
+    cv2.imwrite(imgPath, resized_output)
 
 def main():
     # TODO: ADD ARGS TO DEFINE CONSTANTS
@@ -135,12 +136,15 @@ def main():
                 processedmembers.append(member)
             progressbar.update()
 
+    classescount = 0
     with tqdm(total=c) as progressbar:
         for imgClass in imageclasses.imageClassDict.values():
             for subclass in imgClass.subclasses:
                 photos = tarfile.open(os.path.join(OUTPUT_FOLDER_LOCATION, "tarfiles", subclass + ".tar"))
                 photos.extractall(path=os.path.join(OUTPUT_FOLDER_LOCATION, "images", imgClass.nameID))
+                classescount += 1
             progressbar.update()
+    imgestimate = classescount * 1300
 
     # Renaming all the image files & content-aware crop
     valmap = open(os.path.join(OUTPUT_FOLDER_LOCATION, "val_map.csv"), "w")
@@ -150,16 +154,19 @@ def main():
         os.mkdir(os.path.join(OUTPUT_FOLDER_LOCATION, "train"))
         os.mkdir(os.path.join(OUTPUT_FOLDER_LOCATION, "val"))
         os.mkdir(os.path.join(OUTPUT_FOLDER_LOCATION, "test"))
+        os.mkdir(os.path.join(OUTPUT_FOLDER_LOCATION, "dataset"))
     except FileExistsError:
         pass
 
     globalcount = 0
+    starttime = time.time()
     for folder in os.listdir(os.path.join(OUTPUT_FOLDER_LOCATION, "images")):
         folderpath = os.path.join(OUTPUT_FOLDER_LOCATION, "images", folder)
         try:
             os.mkdir(os.path.join(OUTPUT_FOLDER_LOCATION, "train", folder))
             os.mkdir(os.path.join(OUTPUT_FOLDER_LOCATION, "val", folder))
             os.mkdir(os.path.join(OUTPUT_FOLDER_LOCATION, "test", folder))
+            os.mkdir(os.path.join(OUTPUT_FOLDER_LOCATION, "dataset", folder))
         except FileExistsError:
             pass
 
@@ -169,11 +176,14 @@ def main():
             # 70% train 10% val 20% test
             file = files[i]
             edges(os.path.join(folderpath, file.path.lower()), 3 / 2)
+            if not os.path.isdir(os.path.join(OUTPUT_FOLDER_LOCATION, "dataset", folder)):
+                os.mkdir(os.path.join(OUTPUT_FOLDER_LOCATION, "dataset", folder))
             os.rename(os.path.join(folderpath, file.path.lower()), os.path.join(OUTPUT_FOLDER_LOCATION, "dataset", folder, f"{globalcount}.jpeg"))
 
             globalcount += 1
             if globalcount % 100 == 0:
-                print(str(globalcount) + " finished", end='\r', flush=True)
+                timeleft = (time.time() - starttime) * ((1 / (globalcount / imgestimate)) - 1)
+                print(f"{str(globalcount)} / {str(imgestimate)} finished, approx {str(timeleft)}s left", end='\r', flush=True)
 
 
 if __name__ == "__main__":
