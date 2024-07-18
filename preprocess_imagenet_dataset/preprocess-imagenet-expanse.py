@@ -2,6 +2,7 @@ import csv
 import os.path
 import re
 import tarfile
+import time
 
 import cv2
 from tqdm import tqdm
