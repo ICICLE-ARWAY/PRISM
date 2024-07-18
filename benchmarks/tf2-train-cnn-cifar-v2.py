@@ -94,15 +94,15 @@ def create_datasets(data_dir, classes, height, width, channels, dtype):
         else: # channels == 4
             color_mode = 'rgba'
 
-        train_dataset = keras.preprocessing.image_dataset_from_directory(
-            directory=data_dir+'/train',
+        raw_dataset = keras.preprocessing.image_dataset_from_directory(
+            directory=data_dir,
             labels='inferred',
             label_mode='int',
             color_mode=color_mode,
             batch_size=None,
             image_size=(height, width),
             shuffle=True,
-            seed=None,
+            seed=6059,
             validation_split=None,
             subset=None,
             interpolation='bilinear',
@@ -110,25 +110,8 @@ def create_datasets(data_dir, classes, height, width, channels, dtype):
             crop_to_aspect_ratio=False
         )
 
-        test_dataset = keras.preprocessing.image_dataset_from_directory(
-            directory=data_dir+'/test',
-            labels='inferred',
-            label_mode='int',
-            color_mode=color_mode,
-            batch_size=None,
-            image_size=(height, width),
-            shuffle=True,
-            seed=None,
-            validation_split=None,
-            subset=None,
-            interpolation='bilinear',
-            follow_links=False,
-            crop_to_aspect_ratio=False
-        )
-
-        # Enforce datatypes are the same used in the datasets created by tf.keras.datasets
-        train_dataset = train_dataset.map(lambda x, y: (tf.cast(x, dtype), tf.cast(y, tf.uint8)))
-        test_dataset = test_dataset.map(lambda x, y: (tf.cast(x, dtype), tf.cast(y, tf.uint8)))
+        train_dataset, testvalds = keras.utils.split_dataset(raw_dataset, left_size=0.7, right_size=0.3)
+        test_dataset, val_dataset = keras.utils.split_dataset(testvalds, left_size=(2 / 3), right_size=(1 / 3))
 
     return train_dataset, test_dataset
 
