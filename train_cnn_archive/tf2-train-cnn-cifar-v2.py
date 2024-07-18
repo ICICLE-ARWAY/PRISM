@@ -10,8 +10,11 @@ import time
 
 import numpy as np
 import cv2 as cv
+
 import tensorflow as tf
-#import t2onnx
+import keras
+import onnx
+import tf2onnx
 
 
 def get_command_arguments():
@@ -151,12 +154,12 @@ def create_model(height, width, channels, classes):
 def load_model(model_file, model_format):
     """ Load a model from file in a specific format."""
     model = None
-    return model 
+    return model
 
 
 def save_model(model, model_file, model_format):
     """ Save a mode to a file in a specific format."""
-    exit_val = None
+    exit_val = 0
     return exit_val
 
 
@@ -219,21 +222,3 @@ def main():
 
 if __name__ == '__main__':
     sys.exit(main())
-
-
-# References:
-# https://www.tensorflow.org/tutorials/images/cnn
-# https://touren.github.io/2016/05/31/Image-Classification-CIFAR10.html
-# https://towardsdatascience.com/deep-learning-with-cifar-10-image-classification-64ab92110d79
-# https://www.tensorflow.org/api_docs/python/tf/keras/datasets/cifar10/load_data
-# https://en.wikipedia.org/wiki/8-bit_color
-# https://www.tensorflow.org/guide/keras/sequential_model
-# https://www.tensorflow.org/api_docs/python/tf/keras/Model#summary
-# https://www.tensorflow.org/api_docs/python/tf/keras/Sequential#compile
-# https://www.tensorflow.org/guide/keras/train_and_evaluate
-# https://www.tensorflow.org/api_docs/python/tf/keras/Sequential#compile
-# https://www.tensorflow.org/api_docs/python/tf/keras/Sequential#fit
-# https://www.tensorflow.org/api_docs/python/tf/keras/Sequential#evaluate
-# https://www.tensorflow.org/tutorials/load_data/images
-# https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image_dataset_from_directory
-# https://www.tensorflow.org/tutorials/load_data/tfrecord

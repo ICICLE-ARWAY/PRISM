@@ -17,5 +17,6 @@ dependencies:
   - lightning
   - onnx
   - onnxruntime
+  - pandas
   - pip:
       - onnxscript
