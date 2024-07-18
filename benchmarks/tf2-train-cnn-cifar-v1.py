@@ -4,6 +4,7 @@
 import argparse
 import os
 import sys
+import time
 
 import tensorflow as tf
 import keras
@@ -181,7 +182,11 @@ def main():
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    timestart = time.time()
+    i = main()
+    output = open(f"{os.environ["SLURM_JOB_ID"]}.benchmarks.log", "a")
+    output.writelines(f"{os.environ["SLURM_CPUS_PER_TASK"]},{time.time() - timestart}\n")
+    sys.exit(i)
 
 
 # References:
