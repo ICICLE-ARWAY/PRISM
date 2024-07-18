@@ -47,62 +47,62 @@ def get_command_arguments():
 def create_datasets(classes, args, dtype):
     # """ Create CIFAR training and test datasets """
 
-    # # Download training and test image datasets
-    # if classes == 100:
-    #     (x_train, y_train), (x_test, y_test) = keras.datasets.cifar100.load_data(label_mode='fine')
-    # elif classes == 20:
-    #     (x_train, y_train), (x_test, y_test) = keras.datasets.cifar100.load_data(label_mode='coarse')
-    # else: # classes == 10
-    #     (x_train, y_train), (x_test, y_test) = keras.datasets.cifar10.load_data()
+    # Download training and test image datasets
+    if classes == 100:
+        (x_train, y_train), (x_test, y_test) = keras.datasets.cifar100.load_data(label_mode='fine')
+    elif classes == 20:
+        (x_train, y_train), (x_test, y_test) = keras.datasets.cifar100.load_data(label_mode='coarse')
+    else: # classes == 10
+        (x_train, y_train), (x_test, y_test) = keras.datasets.cifar10.load_data()
 
-    # # Verify training and test image dataset sizes
-    # assert x_train.shape == (50000, 32, 32, 3)
-    # assert y_train.shape == (50000, 1)
-    # assert x_test.shape == (10000, 32, 32, 3)
-    # assert y_test.shape == (10000, 1)
+    # Verify training and test image dataset sizes
+    assert x_train.shape == (50000, 32, 32, 3)
+    assert y_train.shape == (50000, 1)
+    assert x_test.shape == (10000, 32, 32, 3)
+    assert y_test.shape == (10000, 1)
 
-    # # Normalize the 8-bit (3-channel) RGB image pixel data between 0.0 
-    # # and 1.0; also converts datatype from numpy.uint8 to numpy.float64
-    # x_train = x_train / 255.0
-    # x_test = x_test / 255.0
+    # Normalize the 8-bit (3-channel) RGB image pixel data between 0.0
+    # and 1.0; also converts datatype from numpy.uint8 to numpy.float64
+    x_train = x_train / 255.0
+    x_test = x_test / 255.0
 
-    # # Convert from NumPy arrays to TensorFlow tensors
-    # x_train = tf.convert_to_tensor(value=x_train, dtype=dtype, name='x_train')
-    # y_train = tf.convert_to_tensor(value=y_train, dtype=tf.uint8, name='y_train')
-    # x_test = tf.convert_to_tensor(value=x_test, dtype=dtype, name='x_test')
-    # y_test = tf.convert_to_tensor(value=y_test, dtype=tf.uint8, name='y_test')
+    # Convert from NumPy arrays to TensorFlow tensors
+    x_train = tf.convert_to_tensor(value=x_train, dtype=dtype, name='x_train')
+    y_train = tf.convert_to_tensor(value=y_train, dtype=tf.uint8, name='y_train')
+    x_test = tf.convert_to_tensor(value=x_test, dtype=dtype, name='x_test')
+    y_test = tf.convert_to_tensor(value=y_test, dtype=tf.uint8, name='y_test')
 
-    # # Construct TensorFlow datasets
-    # train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
-    # test_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test))
+    # Construct TensorFlow datasets
+    train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
+    test_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test))
 
     # return train_dataset, test_dataset
 
-    if args.channels == 1:
-        color_mode = 'grayscale'
-    elif args.channels == 3:
-        color_mode = 'rgb'
-    else: # channels == 4
-        color_mode = 'rgba'
-
-    raw_dataset = keras.preprocessing.image_dataset_from_directory(
-            directory=args.data_dir,
-            labels='inferred',
-            label_mode='int',
-            color_mode=color_mode,
-            batch_size=None,
-            image_size=(args.height, args.width),
-            shuffle=True,
-            seed=6059,
-            validation_split=None,
-            subset=None,
-            interpolation='bilinear',
-            follow_links=False,
-            crop_to_aspect_ratio=True
-        )
-
-    train_dataset, testvalds = keras.utils.split_dataset(raw_dataset, left_size=0.7, right_size=0.3)
-    test_dataset, val_dataset = keras.utils.split_dataset(testvalds, left_size=(2 / 3), right_size=(1 / 3))
+    # if args.channels == 1:
+    #     color_mode = 'grayscale'
+    # elif args.channels == 3:
+    #     color_mode = 'rgb'
+    # else: # channels == 4
+    #     color_mode = 'rgba'
+    #
+    # raw_dataset = keras.preprocessing.image_dataset_from_directory(
+    #         directory=args.data_dir,
+    #         labels='inferred',
+    #         label_mode='int',
+    #         color_mode=color_mode,
+    #         batch_size=None,
+    #         image_size=(args.height, args.width),
+    #         shuffle=True,
+    #         seed=6059,
+    #         validation_split=None,
+    #         subset=None,
+    #         interpolation='bilinear',
+    #         follow_links=False,
+    #         crop_to_aspect_ratio=True
+    #     )
+    #
+    # train_dataset, testvalds = keras.utils.split_dataset(raw_dataset, left_size=0.7, right_size=0.3)
+    # test_dataset, val_dataset = keras.utils.split_dataset(testvalds, left_size=(2 / 3), right_size=(1 / 3))
 
     return train_dataset, test_dataset
 

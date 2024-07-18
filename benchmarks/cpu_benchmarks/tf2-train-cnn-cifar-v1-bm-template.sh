@@ -4,8 +4,6 @@
 #SBATCH --account=ddp324
 #SBATCH --clusters=expanse
 #SBATCH --partition=[|{PARTITION}|]
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=[|{CPUS}|]
 #SBATCH --mem=16G
 #SBATCH --time=00:30:00
