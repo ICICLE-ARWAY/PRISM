@@ -6,7 +6,7 @@
 #SBATCH --partition=shared
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus=16
+#SBATCH --cpus-per-task=16
 #SBATCH --mem=32G
 #SBATCH --time=05:00:00
 #SBATCH --output=%x.o%A.%a.%N
