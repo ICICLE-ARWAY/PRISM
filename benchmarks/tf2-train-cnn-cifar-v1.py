@@ -4,6 +4,7 @@
 import argparse
 import os
 import sys
+import time
 
 import tensorflow as tf
 import keras
@@ -126,7 +127,7 @@ def create_model(classes, args):
 
     with strategy.scope():
         model = keras.Sequential([
-        keras.layers.InputLayer(input_shape=(128, 192, 3)),
+        keras.layers.InputLayer(input_shape=(32, 32, 3)),
         keras.layers.Conv2D(32, (3, 3), activation='relu'),
         keras.layers.MaxPooling2D((2, 2)),
         keras.layers.Conv2D(64, (3, 3), activation='relu'),
@@ -218,7 +219,11 @@ def main():
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    timestart = time.time()
+    i = main()
+    output = open(f"{os.environ["SLURM_JOB_ID"]}.benchmarks.log", "a")
+    output.writelines(f"{os.environ["SLURM_CPUS_PER_TASK"]},{time.time() - timestart}\n")
+    sys.exit(i)
 
 
 # References:
