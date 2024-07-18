@@ -98,7 +98,7 @@ def create_datasets(classes, args, dtype):
             subset=None,
             interpolation='bilinear',
             follow_links=False,
-            crop_to_aspect_ratio=False
+            crop_to_aspect_ratio=True
         )
 
     train_dataset, testvalds = keras.utils.split_dataset(raw_dataset, left_size=0.7, right_size=0.3)
