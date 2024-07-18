@@ -8,6 +8,7 @@
 #SBATCH --mem=16G
 #SBATCH --time=00:30:00
 #SBATCH --output=%x.o%A.%a.%N
+#SBATCH --nodes=1
 #SBATCH --array=1-10
 #SBATCH --ntasks=1
 
