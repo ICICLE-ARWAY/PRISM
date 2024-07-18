@@ -12,3 +12,4 @@ dependencies:
   - onnxruntime
   - pip:
       - onnxscript
+      - tf2onnx

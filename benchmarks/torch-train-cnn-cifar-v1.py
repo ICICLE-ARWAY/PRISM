@@ -224,9 +224,9 @@ def main():
 
     # export ONNX and PyTorch models w/ builtin versions
     if args.saveonnx:
-        torch.onnx.export(model.eval(), fake_input, f"{modelDir}/model.onnx", input_names=["input"], output_names=["output"])
+        torch.onnx.export(model.eval(), fake_input, f"{modelDir}/{version}_model.onnx", input_names=["input"], output_names=["output"])
     if args.savepytorch:
-        torch.save(model.eval(), f"{modelDir}/model.pt")
+        torch.save(model.eval(), f"{modelDir}/{version}_model.pt")
 
     return 0
 
