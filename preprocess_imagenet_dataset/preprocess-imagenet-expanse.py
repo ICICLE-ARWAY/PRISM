@@ -21,7 +21,7 @@ Row 2 -> ?: Subclass ID (must start with n and follow with 8 hindu-arabic numera
 PREPROCESSOR_CONFIG_CSV_LOCATION = "/expanse/lustre/projects/ddp324/akallu/ICICLE-ML-BENCHMARK/preprocess_imagenet_dataset/ImageNet2SDSC20Config.csv"  # Path
 
 # The output folder is where the sub-folders containing the images from the classes will go
-OUTPUT_FOLDER_LOCATION = "/expanse/lustre/projects/ddp324/akallu/images/processed"  # Path
+OUTPUT_FOLDER_LOCATION = "/expanse/lustre/projects/ddp324/rverma1/images/processed"  # Path
 
 # The file must end in .tar
 ILSVRC2012_LOCATION = "/expanse/lustre/projects/ddp324/akallu/images/ILSVRC2012_img_train.tar"  # Path
