@@ -26,18 +26,18 @@ def bprint(output):
 
 
 def create_benchmark(cpus: int, partition: str):
-    templatefile = open("cpu_benchmarks/torch-model-training-template.sh", "r")
+    templatefile = open("benchmark_scripts/torch-model-training-template.sh", "r")
     filecontents = templatefile.read()
     filecontents = filecontents.replace("[|{CPUS}|]", str(cpus))
     filecontents = filecontents.replace("[|{PARTITION}|]", partition)
-    open(f"cpu_benchmarks/torch-train-cnn-cifar-v1-bm-{str(cpus)}.sh", "w").write(filecontents)
+    open(f"benchmark_scripts/torch-model-training-{str(cpus)}.sh", "w").write(filecontents)
 
 
 def run_benchmark(cpus, args, partition="shared"):
     if cpus > args.max_cpus_per_task:
         return
     create_benchmark(cpus, partition)
-    script = os.environ["SLURM_SUBMIT_DIR"] + "/cpu_benchmarks/torch-train-cnn-cifar-v1-bm-" + str(cpus) + ".sh"
+    script = os.environ["SLURM_SUBMIT_DIR"] + "/benchmark_scripts/torch-model-training-" + str(cpus) + ".sh"
     process = subprocess.Popen(["sbatch", script])
     while process.poll() is None:
         pass
@@ -50,7 +50,7 @@ def processnames():
 
 
 def countbmsrunning():
-    return len([m.start() for m in re.finditer("torch-train-cnn", processnames())])
+    return len([m.start() for m in re.finditer("torch-model-training", processnames())])
 
 
 def wait_for_benchmark_completion():
@@ -97,7 +97,7 @@ def main():
     scriptlist = processnames().split("\\n")
     for i in range(0, len(scriptlist)):
         scriptlist[i] = scriptlist[i].strip("\'").strip("b")
-    p = re.compile('torch-train-cnn')
+    p = re.compile('torch-model-training')
     scriptlist = [x for x in scriptlist if p.match(x)]
     bprint(scriptlist)
 

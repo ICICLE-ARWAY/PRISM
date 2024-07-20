@@ -191,7 +191,7 @@ def main():
 
     # Save the model in the chosen format
     # Support for .tf, .h5, .keras, and .onnx as of now
-    modelDir = "model_exports/version_tf2"
+    modelDir = "model_exports/version_tensorflow"
     version = os.environ.get('SLURM_JOB_ID', 'local')
     os.makedirs(modelDir, exist_ok=True)
 
