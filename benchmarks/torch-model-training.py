@@ -208,7 +208,7 @@ def main():
     train_dataset, test_dataset, val_dataset = create_datasets(classes, dtype=tf_float)
 
     # Prepare the datasets for training and evaluation
-    cifar_datamodule = pl.LightningDataModule.from_datasets(train_dataset=train_dataset, num_workers=args.num_workers, batch_size=batch_size, val_dataset=val_dataset, test_dataset=test_dataset)
+    cifar_datamodule = pl.LightningDataModule.from_datasets(train_dataset=train_dataset, num_workers=int(os.environ['SLURM_CPUS_PER_TASK']), batch_size=batch_size, val_dataset=val_dataset, test_dataset=test_dataset)
 
     # Create model
     if args.model_file != "":
