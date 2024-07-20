@@ -32,7 +32,7 @@ def get_command_arguments():
     parser.add_argument('-CH', '--channels', type=int, default=3, choices=['1', '3', '4'], help='number of color channels')
 
     parser.add_argument('-a', '--accelerator', type=str, default='auto', choices=['auto', 'cpu', 'gpu', 'hpu', 'tpu'], help='accelerator')
-    parser.add_argument('-nw', '--num_workers', type=int, default=0, help='number of workers')
+    parser.add_argument('-nw', '--num_workers', type=int, default=-1, help='number of workers | if num_workers is -1, it will be set as cpus * 2')
 
     parser.add_argument('-m', '--model_file', type=str, default="", help="pre-existing model file if needing to further train model")
 
@@ -153,6 +153,8 @@ def main():
 
     # Read input variables and parse command-line arguments
     args = get_command_arguments()
+    if args.num_workers == -1:
+        args.num_workers = int(os.environ['SLURM_CPUS_PER_TASK']) * 2
 
     # Set internal variables from input variables and command-line arguments
     classes = args.classes

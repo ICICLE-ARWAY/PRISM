@@ -47,7 +47,7 @@ def get_command_arguments():
     parser.add_argument('-H', '--height', type=int, default=128, help='img height')
     parser.add_argument('-W', '--width', type=int, default=192, help='img width')
     parser.add_argument('-a', '--accelerator', type=str, default='auto', choices=['auto', 'cpu', 'gpu', 'hpu', 'tpu'], help='accelerator')
-    parser.add_argument('-w', '--num_workers', type=int, default=0, help='number of workers')
+    parser.add_argument('-w', '--num_workers', type=int, default=-1, help='number of workers | if num_workers is -1, it will be set as cpus * 2')
     parser.add_argument('-m', '--model_file', type=str, default="", help="pre-existing model file if needing to further train model")
     parser.add_argument('-P', '--savepytorch', type=bool, default=False, help="save model as keras model file")
     parser.add_argument('-O', '--saveonnx', type=bool, default=False, help="save model as ONNX model file")
@@ -183,6 +183,8 @@ def main():
 
     # Read input variables and parse command-line arguments
     args = get_command_arguments()
+    if args.num_workers == -1:
+        args.num_workers = int(os.environ['SLURM_CPUS_PER_TASK']) * 2
 
     # Set internal variables from input variables and command-line arguments
     classes = args.classes
@@ -208,7 +210,7 @@ def main():
     train_dataset, test_dataset, val_dataset = create_datasets(classes, dtype=tf_float)
 
     # Prepare the datasets for training and evaluation
-    cifar_datamodule = pl.LightningDataModule.from_datasets(train_dataset=train_dataset, num_workers=int(os.environ['SLURM_CPUS_PER_TASK']), batch_size=batch_size, val_dataset=val_dataset, test_dataset=test_dataset)
+    cifar_datamodule = pl.LightningDataModule.from_datasets(train_dataset=train_dataset, num_workers=args.num_workers, batch_size=batch_size, val_dataset=val_dataset, test_dataset=test_dataset)
 
     # Create model
     if args.model_file != "":
