@@ -3,6 +3,7 @@ import argparse
 import math
 import os
 import sys
+import time
 
 import torch
 from torchvision import datasets
@@ -69,36 +70,36 @@ def create_datasets(classes, dtype):
     # if classes == 100:
     #         train_dataset = CIFAR100(root='./data', transform=ToTensor(), train=True, download=True)
     #         test_dataset = CIFAR100(root='./data', transform=ToTensor(), train=False, download=True)
-    #     else: # classes == 10
-    #         train_dataset = CIFAR10(root='./data', transform=ToTensor(), train=True, download=True)
-    #         test_dataset = CIFAR10(root='./data', transform=ToTensor(), train=False, download=True)
+    # else: # classes == 10
+    #     train_dataset = CIFAR10(root='./data', transform=ToTensor(), train=True, download=True)
+    #     test_dataset = CIFAR10(root='./data', transform=ToTensor(), train=False, download=True)
     #
-    #     # Converting to respective tensors for analysis and building datasets
-    #     x_train, y_train = np.array(train_dataset.data), np.array(train_dataset.targets)
-    #     x_test, y_test = np.array(test_dataset.data), np.array(test_dataset.targets)
+    # # Converting to respective tensors for analysis and building datasets
+    # x_train, y_train = np.array(train_dataset.data), np.array(train_dataset.targets)
+    # x_test, y_test = np.array(test_dataset.data), np.array(test_dataset.targets)
     #
-    #     # Verify training and test image dataset sizes
-    #     assert x_train.shape == (50000, 32, 32, 3)
-    #     assert y_train.shape == (50000,)
-    #     assert x_test.shape == (10000, 32, 32, 3)
-    #     assert y_test.shape == (10000,)
+    # # Verify training and test image dataset sizes
+    # assert x_train.shape == (50000, 32, 32, 3)
+    # assert y_train.shape == (50000,)
+    # assert x_test.shape == (10000, 32, 32, 3)
+    # assert y_test.shape == (10000,)
     #
-    #     # Normalize the 8-bit (3-channel) RGB image pixel data between 0.0
-    #     # and 1.0; also converts datatype from numpy.uint8 to numpy.float64
-    #     x_train = x_train / 255.0
-    #     x_test = x_test / 255.0
+    # # Normalize the 8-bit (3-channel) RGB image pixel data between 0.0
+    # # and 1.0; also converts datatype from numpy.uint8 to numpy.float64
+    # x_train = x_train / 255.0
+    # x_test = x_test / 255.0
     #
-    #     # Convert from NumPy arrays to PyTorch tensors
-    #     x_train = torch.tensor(data=x_train, dtype=dtype).permute(0, 3, 1, 2)
-    #     y_train = torch.tensor(data=y_train, dtype=torch.uint8)
-    #     x_test = torch.tensor(data=x_test, dtype=dtype).permute(0, 3, 1, 2)
-    #     y_test = torch.tensor(data=y_test, dtype=torch.uint8)
+    # # Convert from NumPy arrays to PyTorch tensors
+    # x_train = torch.tensor(data=x_train, dtype=dtype).permute(0, 3, 1, 2)
+    # y_train = torch.tensor(data=y_train, dtype=torch.uint8)
+    # x_test = torch.tensor(data=x_test, dtype=dtype).permute(0, 3, 1, 2)
+    # y_test = torch.tensor(data=y_test, dtype=torch.uint8)
     #
-    #     # Construct PyTorch datasets
-    #     train_dataset = TensorDataset(x_train, y_train)
-    #     test_dataset = TensorDataset(x_test, y_test)
+    # # Construct PyTorch datasets
+    # train_dataset = TensorDataset(x_train, y_train)
+    # test_dataset = TensorDataset(x_test, y_test)
     #
-    #     return train_dataset, test_dataset, test_dataset
+    # return train_dataset, test_dataset, test_dataset
 
     return createdataset("D:\\ImageNetDB\\processed\\dataset", dtype)
 
@@ -220,7 +221,7 @@ def main():
     trainer.fit(model, datamodule=cifar_datamodule)
     trainer.test(model, dataloaders=cifar_datamodule, verbose=True)
 
-    fake_input = torch.rand((batch_size, 3, 32, 32), dtype=tf_float)  # Fake input to emulate how actual input would be given
+    fake_input = torch.rand((batch_size, 3, 128, 192), dtype=tf_float)  # Fake input to emulate how actual input would be given
 
     modelDir = "model_exports/version_torch"  # Create str ref of model directory
     version = str(trainer.logger.version)
@@ -237,6 +238,10 @@ def main():
 
 
 if __name__ == '__main__':
-    sys.exit(main())
+    timestart = time.time()
+    i = main()
+    output = open(f"benchmarks.log", "a")
+    output.writelines(f"{os.environ["SLURM_CPUS_PER_TASK"]},{time.time() - timestart}\n")
+    sys.exit(i)
 
 # %%

@@ -5,8 +5,8 @@
 #SBATCH --clusters=expanse
 #SBATCH --partition=[|{PARTITION}|]
 #SBATCH --cpus-per-task=[|{CPUS}|]
-#SBATCH --mem=16G
-#SBATCH --time=00:30:00
+#SBATCH --mem=32G
+#SBATCH --time=02:00:00
 #SBATCH --output=%x.o%A.%a.%N
 #SBATCH --nodes=1
 #SBATCH --array=1-10
@@ -77,6 +77,6 @@ printenv
 cd "${SLURM_SUBMIT_DIR}"
 
 echo "Running the training script from ${SLURM_SUBMIT_DIR} ..."
-time -p python3 -u torch-model-training.py --classes 10 --precision fp32 --epochs 42 --batch_size 256 --accelerator cpu --savepytorch True
+time -p python3 -u torch-model-training.py --classes 10 --precision fp32 --epochs 1 --batch_size 256 --accelerator cpu --savepytorch True
 
 echo "Job completed"

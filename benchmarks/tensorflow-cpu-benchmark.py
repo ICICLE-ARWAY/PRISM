@@ -62,20 +62,20 @@ def wait_for_benchmark_completion():
 
 
 def main():
+    if os.path.isfile("benchmarks.log"):
+        os.rename("benchmarks.log", f"{str(time.time())}.benchmarks.log")
     args = get_command_arguments()
     max_cpus_per_task = args.max_cpus_per_task
     tasksRun = 0
-
-    # run_benchmark(1, args)
-    # tasksRun += 1
-    # run_benchmark(2, args)
-    # tasksRun += 1
-    # run_benchmark(4, args)
-    # tasksRun += 1
-    # run_benchmark(8, args)
-    # tasksRun += 1
-    # cpus = 16
-    cpus = 32
+    run_benchmark(1, args)
+    tasksRun += 1
+    run_benchmark(2, args)
+    tasksRun += 1
+    run_benchmark(4, args)
+    tasksRun += 1
+    run_benchmark(8, args)
+    tasksRun += 1
+    cpus = 16
     while cpus < max_cpus_per_task:
         run_benchmark(cpus, args)
         tasksRun += 1
