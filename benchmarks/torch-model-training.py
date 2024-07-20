@@ -101,7 +101,7 @@ def create_datasets(classes, dtype):
     #
     # return train_dataset, test_dataset, test_dataset
 
-    return createdataset("D:\\ImageNetDB\\processed\\dataset", dtype)
+    return createdataset("/expanse/lustre/projects/ddp324/akallu/sdsc10", dtype)
 
 # %%
 
