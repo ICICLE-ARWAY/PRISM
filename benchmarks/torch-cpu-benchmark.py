@@ -15,7 +15,8 @@ def get_command_arguments():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
-    parser.add_argument('-m', '--max-cpus-per-task', type=int, default=128, help='max cpus on a task')
+    parser.add_argument('-l', '--cpu-benchmark-limit', type=int, default=128, help='max cpu count that need to be benchmarked')
+    parser.add_argument('-m', '--max-cpus-per-task', type=int, default=128, help='max cpus on a task allowed by the system')
 
     args = parser.parse_args()
     return args
@@ -34,7 +35,7 @@ def create_benchmark(cpus: int, partition: str):
 
 
 def run_benchmark(cpus, args, partition="shared"):
-    if cpus > args.max_cpus_per_task:
+    if cpus > args.max_cpus_per_task or cpus > args.cpu_benchmark_limit:
         return
     create_benchmark(cpus, partition)
     script = os.environ["SLURM_SUBMIT_DIR"] + "/benchmark_scripts/torch-model-training-" + str(cpus) + ".sh"
@@ -76,7 +77,7 @@ def main():
     run_benchmark(8, args)
     tasksRun += 1
     cpus = 16
-    while cpus < max_cpus_per_task:
+    while cpus < max_cpus_per_task and cpus < args.cpu_benchmark_limit:
         run_benchmark(cpus, args)
         tasksRun += 1
         cpus += 16
