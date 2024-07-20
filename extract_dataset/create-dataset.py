@@ -19,7 +19,7 @@ Col 1: ID of Classes (must be alphanumeric snake case)
 Row 2 -> ?: Subclass ID (must start with n and follow with 8 hindu-arabic numerals)
 """
 
-PREPROCESSOR_CONFIG_CSV_LOCATION = "\\Users\\anish\\PycharmProjects\\ICICLE-ML-BENCHMARK\\preprocess_imagenet_dataset\\ImageNet2SDSC20Config.csv"  # Path
+PREPROCESSOR_CONFIG_CSV_LOCATION = "\\Users\\anish\\PycharmProjects\\ICICLE-ML-BENCHMARK\\extract_dataset\\ImageNet2SDSC20Config.csv"  # Path
 
 # The output folder is where the sub-folders containing the images from the classes will go
 OUTPUT_FOLDER_LOCATION = "D:\\ImageNetDB\\processed"  # Path

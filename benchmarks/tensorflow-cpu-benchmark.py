@@ -26,18 +26,18 @@ def bprint(output):
 
 
 def create_benchmark(cpus: int, partition: str):
-    templatefile = open("cpu_benchmarks/torch-train-cnn-cifar-v1-bm-template.sh", "r")
+    templatefile = open("cpu_benchmarks/tensorflow-model-training-template.sh", "r")
     filecontents = templatefile.read()
     filecontents = filecontents.replace("[|{CPUS}|]", str(cpus))
     filecontents = filecontents.replace("[|{PARTITION}|]", partition)
-    open(f"cpu_benchmarks/torch-train-cnn-cifar-v1-bm-{str(cpus)}.sh", "w").write(filecontents)
+    open(f"cpu_benchmarks/tf2-train-cnn-cifar-v1-bm-{str(cpus)}.sh", "w").write(filecontents)
 
 
 def run_benchmark(cpus, args, partition="shared"):
     if cpus > args.max_cpus_per_task:
         return
     create_benchmark(cpus, partition)
-    script = os.environ["SLURM_SUBMIT_DIR"] + "/cpu_benchmarks/torch-train-cnn-cifar-v1-bm-" + str(cpus) + ".sh"
+    script = os.environ["SLURM_SUBMIT_DIR"] + "/cpu_benchmarks/tf2-train-cnn-cifar-v1-bm-" + str(cpus) + ".sh"
     process = subprocess.Popen(["sbatch", script])
     while process.poll() is None:
         pass
@@ -50,7 +50,7 @@ def processnames():
 
 
 def countbmsrunning():
-    return len([m.start() for m in re.finditer("torch-train-cnn", processnames())])
+    return len([m.start() for m in re.finditer("tf2-train-cnn", processnames())])
 
 
 def wait_for_benchmark_completion():
@@ -97,7 +97,7 @@ def main():
     scriptlist = processnames().split("\\n")
     for i in range(0, len(scriptlist)):
         scriptlist[i] = scriptlist[i].strip("\'").strip("b")
-    p = re.compile('torch-train-cnn')
+    p = re.compile('tf2-train-cnn')
     scriptlist = [x for x in scriptlist if p.match(x)]
     bprint(scriptlist)
 
@@ -105,31 +105,32 @@ def main():
 
     bprint("All benchmarks completed.")
 
-    benchmarkdict = {}
+    #     benchmarkdict = {}
 
-    for scriptname in scriptlist:
-        plist = [filename for filename in os.listdir('.') if filename.startswith(scriptname)]
-        prefixed: str = plist[0]
-        file = open(prefixed, "r")
-        realnum = -1
-        sysnum = -1
-        usernum = -1
-
-        for line in file:
-            if line.find("real ") != -1:
-                realnum = float(line.replace("real ", "").replace("\n", ""))
-            if line.find("sys ") != -1:
-                sysnum = float(line.replace("sys ", "").replace("\n", ""))
-            if line.find("user ") != -1:
-                usernum = float(line.replace("user ", "").replace("\n", ""))
-        if realnum != -1 and sysnum != -1 and usernum != -1:
-            benchmarkdict[prefixed] = [realnum, sysnum, usernum]
-
-    bprint(benchmarkdict)
-    outfile = open(str(uuid.uuid4()) + ".csv", "w")
-    outfile.writelines(f"cores,real,sys,user\n")
-    for n in benchmarkdict.keys():
-        outfile.writelines(f"{n},{benchmarkdict[n][0]},{benchmarkdict[n][1]},{benchmarkdict[n][2]}\n")
+    #     for scriptname in scriptlist:
+    #         plist = [filename for filename in os.listdir('.') if filename.startswith(scriptname)]
+    #         prefixed: str = plist[0]
+    #         file = open(prefixed, "r")
+    #         realnum = -1
+    #         sysnum = -1
+    #         usernum = -1
+    #
+    #         for line in file:
+    #             if line.find("real ") != -1:
+    #                 realnum = float(line.replace("real ", "").replace("\n", ""))
+    #             if line.find("sys ") != -1:
+    #                 sysnum = float(line.replace("sys ", "").replace("\n", ""))
+    #             if line.find("user ") != -1:
+    #                 usernum = float(line.replace("user ", "").replace("\n", ""))
+    #         if realnum != -1 and sysnum != -1 and usernum != -1:
+    #             benchmarkdict[prefixed] = [realnum, sysnum, usernum]
+    #
+    #     bprint(benchmarkdict)
+    #     outfile = open(str(uuid.uuid4()) + ".csv", "w")
+    #     outfile.writelines(f"cores,real,sys,user\n")
+    #     for n in benchmarkdict.keys():
+    #         outfile.writelines(f"{n},{benchmarkdict[n][0]},{benchmarkdict[n][1]},{benchmarkdict[n][2]}\n")
+    #     outfile.flush()
 
     return 0
 

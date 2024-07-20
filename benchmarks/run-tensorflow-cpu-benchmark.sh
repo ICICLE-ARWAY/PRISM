@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-#SBATCH --job-name=run-torch-cpu-bm-analysis
+#SBATCH --job-name=run-tensorflow-cpu-benchmark
 #SBATCH --account=ddp324
 #SBATCH --clusters=expanse
 #SBATCH --partition=shared
@@ -11,6 +11,6 @@
 #SBATCH --time=00:30:00
 #SBATCH --output=%x.o%A.%a.%N
 
-python3 torch-cpu-bm-analysis.py
+python3 tensorflow-cpu-benchmark.py
 
 echo "Job completed"

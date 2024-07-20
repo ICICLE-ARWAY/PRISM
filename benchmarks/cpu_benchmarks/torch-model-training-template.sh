@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-#SBATCH --job-name=torch-train-cnn-cifar-v1-bm-[|{CPUS}|]-c10-fp32-e42-bs256
+#SBATCH --job-name=torch-model-training-[|{CPUS}|]-c10-fp32-e42-bs256
 #SBATCH --account=ddp324
 #SBATCH --clusters=expanse
 #SBATCH --partition=[|{PARTITION}|]
@@ -77,6 +77,6 @@ printenv
 cd "${SLURM_SUBMIT_DIR}"
 
 echo "Running the training script from ${SLURM_SUBMIT_DIR} ..."
-time -p python3 -u torch-train-cnn-cifar-v1.py --classes 10 --precision fp32 --epochs 42 --batch_size 256 --accelerator cpu --savepytorch True
+time -p python3 -u torch-model-training.py --classes 10 --precision fp32 --epochs 42 --batch_size 256 --accelerator cpu --savepytorch True
 
 echo "Job completed"

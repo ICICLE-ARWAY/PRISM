@@ -11,6 +11,6 @@
 #SBATCH --time=04:00:00
 #SBATCH --output=%x.o%A.%a.%N
 
-python3 preprocess-imagenet.py
+python3 create-dataset.py
 
 echo "Job completed"
