@@ -77,7 +77,7 @@ def main():
     run_benchmark(8, args)
     tasksRun += 1
     cpus = 16
-    while cpus < max_cpus_per_task and cpus < args.cpu_benchmark_limit:
+    while cpus < max_cpus_per_task and cpus <= args.cpu_benchmark_limit:
         run_benchmark(cpus, args)
         tasksRun += 1
         cpus += 16

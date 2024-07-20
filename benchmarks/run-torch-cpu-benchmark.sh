@@ -11,6 +11,6 @@
 #SBATCH --time=00:30:00
 #SBATCH --output=%x.o%A.%a.%N
 
-python3 torch-cpu-benchmark.py -l 32
+python3 torch-cpu-benchmark.py -l 8
 
 echo "Job completed"

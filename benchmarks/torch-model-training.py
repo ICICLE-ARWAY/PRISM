@@ -241,7 +241,7 @@ if __name__ == '__main__':
     timestart = time.time()
     i = main()
     output = open(f"benchmarks.log", "a")
-    output.writelines(f"{os.environ["SLURM_CPUS_PER_TASK"]},{time.time() - timestart}\n")
+    output.writelines(f"{os.environ['SLURM_CPUS_PER_TASK']},{time.time() - timestart}\n")
     sys.exit(i)
 
 # %%
