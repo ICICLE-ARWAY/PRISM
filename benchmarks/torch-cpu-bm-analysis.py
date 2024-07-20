@@ -20,8 +20,10 @@ def get_command_arguments():
     args = parser.parse_args()
     return args
 
+
 def bprint(output):
     subprocess.call(["echo", str(output)])
+
 
 def create_benchmark(cpus: int, partition: str):
     templatefile = open("cpu_benchmarks/torch-train-cnn-cifar-v1-bm-template.sh", "r")
@@ -32,7 +34,8 @@ def create_benchmark(cpus: int, partition: str):
 
 
 def run_benchmark(cpus, args, partition="shared"):
-    if cpus > args.max_cpus_per_task : return
+    if cpus > args.max_cpus_per_task:
+        return
     create_benchmark(cpus, partition)
     script = os.environ["SLURM_SUBMIT_DIR"] + "/cpu_benchmarks/torch-train-cnn-cifar-v1-bm-" + str(cpus) + ".sh"
     process = subprocess.Popen(["sbatch", script])
@@ -40,12 +43,15 @@ def run_benchmark(cpus, args, partition="shared"):
         pass
     bprint(cpus)
 
+
 def processnames():
     # %x.o%A.%a.%N
     return str(subprocess.check_output(["squeue", "-u", os.environ["USER"], "-o", "%j.o%A"]))
 
+
 def countbmsrunning():
     return len([m.start() for m in re.finditer("torch-train-cnn", processnames())])
+
 
 def wait_for_benchmark_completion():
     # Get names of processes running

@@ -1,4 +1,4 @@
-#%%
+# %%
 import argparse
 import os
 import sys
@@ -14,7 +14,7 @@ import numpy as np
 
 import cv2 as cv
 
-# %%
+
 def get_command_arguments():
     """ Read input variables and parse command-line arguments """
 
@@ -32,7 +32,7 @@ def get_command_arguments():
     parser.add_argument('-D', '--data_dir', type=str, default=None, help='path to data directory')
     parser.add_argument('-H', '--height', type=int, default=32, help='image height')
     parser.add_argument('-W', '--width', type=int, default=32, help='image width')
-    parser.add_argument('-CH', '--channels', type=int, default=3, choices=['1','3','4'], help='number of color channels')
+    parser.add_argument('-CH', '--channels', type=int, default=3, choices=['1', '3', '4'], help='number of color channels')
 
     parser.add_argument('-a', '--accelerator', type=str, default='auto', choices=['auto', 'cpu', 'gpu', 'hpu', 'tpu'], help='accelerator')
     parser.add_argument('-nw', '--num_workers', type=int, default=0, help='number of workers')
@@ -47,7 +47,9 @@ def get_command_arguments():
     args = parser.parse_args()
     return args
 
-#%%               
+# %%
+
+
 def create_datasets(data_dir, classes, height, width, channels, dtype):
     """ Create training (, validation,) and test datasets
     """
@@ -58,7 +60,7 @@ def create_datasets(data_dir, classes, height, width, channels, dtype):
         if classes == 100:
             train_dataset = CIFAR100(root='./data', transform=ToTensor(), train=True, download=True)
             test_dataset = CIFAR100(root='./data', transform=ToTensor(), train=False, download=True)
-        else: # classes == 10
+        else:  # classes == 10
             train_dataset = CIFAR10(root='./data', transform=ToTensor(), train=True, download=True)
             test_dataset = CIFAR10(root='./data', transform=ToTensor(), train=False, download=True)
 
@@ -72,7 +74,7 @@ def create_datasets(data_dir, classes, height, width, channels, dtype):
         assert x_test.shape == (10000, 32, 32, 3)
         assert y_test.shape == (10000,)
 
-        # Normalize the 8-bit (3-channel) RGB image pixel data between 0.0 
+        # Normalize the 8-bit (3-channel) RGB image pixel data between 0.0
         # and 1.0; also converts datatype from numpy.uint8 to numpy.float64
         x_train = x_train / 255.0
         x_test = x_test / 255.0
@@ -86,12 +88,13 @@ def create_datasets(data_dir, classes, height, width, channels, dtype):
         # Construct PyTorch datasets
         train_dataset = TensorDataset(x_train, y_train)
         test_dataset = TensorDataset(x_test, y_test)
-    
+
     else:
         train_dataset = CustomDataset(csv_file=data_dir + "/train.csv", root_dir=data_dir + "/train", height=height, width=width, channels=channels, transform=ToTensor())
         test_dataset = CustomDataset(csv_file=data_dir + "/test.csv", root_dir=data_dir + "/test", height=height, width=width, channels=channels, transform=ToTensor())
 
     return train_dataset, test_dataset
+
 
 class CustomDataset(torch.utils.data.Dataset):
     def __init__(self, csv_file, root_dir, height, width, channels, transform=None):
@@ -104,7 +107,7 @@ class CustomDataset(torch.utils.data.Dataset):
 
     def __len__(self):
         return len(self.annotations)
-    
+
     def __getitem__(self, index):
         img_path = os.path.join(self.root_dir, self.annotations.iloc[index, 0])
         image = cv.imread(img_path)
@@ -116,7 +119,7 @@ class CustomDataset(torch.utils.data.Dataset):
         return (image, y_label)
 
 
-#%%
+# %%
 class CNN(pl.LightningModule):
     def __init__(self, classes, args):
         super(CNN, self).__init__()
@@ -126,7 +129,7 @@ class CNN(pl.LightningModule):
         self.test_acc = Accuracy(num_classes=classes, task='MULTICLASS')
         self.val_acc = Accuracy(num_classes=classes, task='MULTICLASS')
 
-        #tensor format: [batch_size, channels, height, width]
+        # tensor format: [batch_size, channels, height, width]
         self.cnn_block = torch.nn.Sequential(
             torch.nn.Conv2d(in_channels=3, out_channels=32, kernel_size=3),
             torch.nn.ReLU(),
@@ -138,7 +141,7 @@ class CNN(pl.LightningModule):
             torch.nn.ReLU(),
             torch.nn.Flatten(),
             torch.nn.Linear(64 * 4 * 4, 64),
-            #torch.nn.Linear(linear_shape, 64),
+            # torch.nn.Linear(linear_shape, 64),
             torch.nn.ReLU(),
             torch.nn.Linear(64, classes)
         )
@@ -184,7 +187,8 @@ class CNN(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.parameters(), lr=0.001)
         return optimizer
-    
+
+
 def load_model(model_file, classes, args):
     if model_file != "":
         model = torch.load(model_file)
@@ -193,7 +197,9 @@ def load_model(model_file, classes, args):
 
     return model
 
-#%%
+# %%
+
+
 def main():
     """ Train CNN on CIFAR """
 
@@ -208,10 +214,10 @@ def main():
         case 'fp64': tf_float = torch.float64
         case 'fp32': tf_float = torch.float32
         case _: raise Exception(
-                "Provided precision string: " +
-                args.precision +
-                " is not within the accepted set of values: ['bf16', 'fp16', 'fp64', 'fp32']"
-            )
+            "Provided precision string: " +
+            args.precision +
+            " is not within the accepted set of values: ['bf16', 'fp16', 'fp64', 'fp32']"
+        )
     epochs = args.epochs
     batch_size = args.batch_size
     verbose = args.verbose
@@ -246,7 +252,7 @@ def main():
     modelDir = "model_exports/version_torch"  # Create str ref of model directory
     version = str(trainer.logger.version)
 
-    os.makedirs(modelDir, exist_ok = True) 
+    os.makedirs(modelDir, exist_ok=True)
 
     # export ONNX and PyTorch models w/ builtin versions
     if args.saveonnx:

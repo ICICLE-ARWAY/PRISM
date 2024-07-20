@@ -66,6 +66,7 @@ class ImageClassSet:
         except KeyError:
             raise KeyError("The number ID does not exist for of the Image Classes provided!")
 
+
 def edges(imgPath: str, ratio):
     # Read an image
     input_image = cv2.imread(imgPath, cv2.IMREAD_UNCHANGED)
@@ -105,6 +106,7 @@ def edges(imgPath: str, ratio):
 
     # Save image
     cv2.imwrite(imgPath, resized_output)
+
 
 def main():
     # TODO: ADD ARGS TO DEFINE CONSTANTS

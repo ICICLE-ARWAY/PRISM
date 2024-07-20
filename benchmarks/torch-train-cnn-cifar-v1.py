@@ -1,4 +1,4 @@
-#%%
+# %%
 import argparse
 import math
 import os
@@ -29,6 +29,8 @@ class SDSCSubset(Dataset):
         return len(self.subset)
 
 # %%
+
+
 def get_command_arguments():
     """ Read input variables and parse command-line arguments """
 
@@ -62,7 +64,7 @@ def createdataset(root: str, dtype):
     return trainds, testds, valds
 
 
-#%%               
+# %%
 def create_datasets(classes, dtype):
     # if classes == 100:
     #         train_dataset = CIFAR100(root='./data', transform=ToTensor(), train=True, download=True)
@@ -100,7 +102,9 @@ def create_datasets(classes, dtype):
 
     return createdataset("D:\\ImageNetDB\\processed\\dataset", dtype)
 
-#%%
+# %%
+
+
 class CNN(pl.LightningModule):
     def __init__(self, classes, args):
         super(CNN, self).__init__()
@@ -170,7 +174,9 @@ class CNN(pl.LightningModule):
         optimizer = torch.optim.AdamW(self.parameters(), lr=0.001)
         return optimizer
 
-#%%
+# %%
+
+
 def main():
     """ Train CNN on CIFAR """
 
@@ -185,10 +191,10 @@ def main():
         case 'fp64': tf_float = torch.float64
         case 'fp32': tf_float = torch.float32
         case _: raise Exception(
-                "Provided precision string: " +
-                args.precision +
-                " is not within the accepted set of values: ['bf16', 'fp16', 'fp64', 'fp32']"
-            )
+            "Provided precision string: " +
+            args.precision +
+            " is not within the accepted set of values: ['bf16', 'fp16', 'fp64', 'fp32']"
+        )
 
     epochs = args.epochs
     batch_size = args.batch_size
@@ -219,7 +225,7 @@ def main():
     modelDir = "model_exports/version_torch"  # Create str ref of model directory
     version = str(trainer.logger.version)
 
-    os.makedirs(modelDir, exist_ok = True) 
+    os.makedirs(modelDir, exist_ok=True)
 
     # export ONNX and PyTorch models w/ builtin versions
     if args.saveonnx:
