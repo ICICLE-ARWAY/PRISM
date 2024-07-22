@@ -52,7 +52,7 @@ def create_SDSC_dataset(root, args, dtype):
     else: # channels == 4
         color_mode = 'rgba'
     
-    raw_dataset = keras.preprocessing.image_dataset_from_directory(
+    raw_dataset = keras.utils.image_dataset_from_directory(
             directory=root,
             labels='inferred',
             label_mode='int',
