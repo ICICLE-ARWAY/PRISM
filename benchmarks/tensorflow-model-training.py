@@ -53,7 +53,7 @@ def create_SDSC_dataset(root, args, dtype):
     else: # channels == 4
         color_mode = 'rgba'
     
-    raw_dataset = keras.utils.image_dataset_from_directory(
+    train_dataset, testvalds = keras.utils.image_dataset_from_directory(
             directory=root,
             labels='inferred',
             label_mode='categorical',
@@ -62,14 +62,13 @@ def create_SDSC_dataset(root, args, dtype):
             image_size=(192, 128),
             shuffle=True,
             seed=6059,
-            validation_split=0,
-            subset="training",
+            validation_split=0.3,
+            subset="both",
             interpolation='bilinear',
             follow_links=False,
             crop_to_aspect_ratio=True
         )
     
-    train_dataset, testvalds = keras.utils.split_dataset(raw_dataset, left_size=0.7, right_size=0.3)
     test_dataset, val_dataset = keras.utils.split_dataset(testvalds, left_size=(2 / 3), right_size=(1 / 3))
 
     return train_dataset, test_dataset
