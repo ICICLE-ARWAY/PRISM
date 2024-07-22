@@ -56,14 +56,14 @@ def create_SDSC_dataset(root, args, dtype):
     raw_dataset = keras.utils.image_dataset_from_directory(
             directory=root,
             labels='inferred',
-            label_mode='int',
+            label_mode='categorical',
             color_mode='rgb',
-            batch_size=None,
+            batch_size=256,
             image_size=(192, 128),
             shuffle=True,
             seed=6059,
             validation_split=None,
-            subset=None,
+            subset="training",
             interpolation='bilinear',
             follow_links=False,
             crop_to_aspect_ratio=True
@@ -143,7 +143,7 @@ def create_model(classes, args):
 
         model.compile(
             optimizer=keras.optimizers.Adam(),
-            loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+            loss=keras.losses.CategoricalCrossentropy(from_logits=True),
             metrics=['accuracy'],
         )
 
