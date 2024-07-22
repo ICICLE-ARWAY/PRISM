@@ -62,8 +62,8 @@ def create_SDSC_dataset(root, args, dtype):
             image_size=(192, 128),
             shuffle=True,
             seed=6059,
-            validation_split=None,
-            subset="training",
+            # validation_split=None,
+            # subset="training",
             interpolation='bilinear',
             follow_links=False,
             crop_to_aspect_ratio=True
