@@ -44,6 +44,7 @@ def get_command_arguments():
     args = parser.parse_args()
     return args
 
+# https://keras.io/api/data_loading/image/ 
 def create_SDSC_dataset(root, args, dtype):
     if args.channels == 1:
         color_mode = 'grayscale'
@@ -56,9 +57,9 @@ def create_SDSC_dataset(root, args, dtype):
             directory=root,
             labels='inferred',
             label_mode='int',
-            color_mode=color_mode,
+            color_mode='rgb',
             batch_size=None,
-            image_size=(128, 192),
+            image_size=(192, 128),
             shuffle=True,
             seed=6059,
             validation_split=None,
