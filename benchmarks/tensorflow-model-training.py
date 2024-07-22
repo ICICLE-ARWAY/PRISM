@@ -53,7 +53,7 @@ def create_SDSC_dataset(root, args, dtype):
     else: # channels == 4
         color_mode = 'rgba'
     
-    train_dataset, testvalds = keras.utils.image_dataset_from_directory(
+    train_dataset, testvalds = tf.keras.preprocessing.image_dataset_from_directory(
             directory=root,
             labels='inferred',
             label_mode='categorical',
