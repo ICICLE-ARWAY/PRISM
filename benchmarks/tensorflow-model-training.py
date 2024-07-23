@@ -53,22 +53,22 @@ def create_SDSC_dataset(root, args, dtype):
     else: # channels == 4
         color_mode = 'rgba'
     
-    raw_dataset = keras.utils.image_dataset_from_directory(root, labels='inferred')
-    # train_dataset, testvalds = keras.preprocessing.image_dataset_from_directory(
-    #         directory=root,
-    #         labels='inferred',
-    #         label_mode='categorical',
-    #         color_mode='rgb',
-    #         batch_size=256,
-    #         image_size=(192, 128),
-    #         shuffle=True,
-    #         seed=6059,
-    #         validation_split=0.3,
-    #         subset="both",
-    #         interpolation='bilinear',
-    #         follow_links=False,
-    #         crop_to_aspect_ratio=True
-    #     )
+    # raw_dataset = keras.utils.image_dataset_from_directory(root, labels='inferred')
+    raw_dataset = keras.preprocessing.image_dataset_from_directory(
+            directory=root,
+            labels='inferred',
+            label_mode='categorical',
+            color_mode='rgb',
+            batch_size=256,
+            image_size=(192, 128),
+            shuffle=True,
+            seed=6059,
+            validation_split=0,
+            subset="training",
+            interpolation='bilinear',
+            follow_links=False,
+            crop_to_aspect_ratio=True
+        )
 
     train_dataset, testvalds = keras.utils.split_dataset(raw_dataset, left_size=0.7, right_size=0.3)
     test_dataset, val_dataset = keras.utils.split_dataset(testvalds, left_size=(2 / 3), right_size=(1 / 3))
@@ -108,7 +108,7 @@ def create_datasets(classes, args, dtype):
     # test_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test))
 
     # return train_dataset, test_dataset
-    return create_SDSC_dataset("//expanse//lustre//projects//ddp324//akallu//sdsc10", args, dtype)
+    return create_SDSC_dataset("/home/wyuan3/projects/datasets/sdsc10", args, dtype)
 
 
 def create_model(classes, args):
