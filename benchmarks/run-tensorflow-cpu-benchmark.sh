@@ -3,7 +3,7 @@
 #SBATCH --job-name=run-tensorflow-cpu-benchmark
 #SBATCH --account=ddp324
 #SBATCH --clusters=expanse
-#SBATCH --partition=compute
+#SBATCH --partition=shared
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=8
