@@ -187,7 +187,7 @@ def main():
         if args.num_workers == -1:
             args.num_workers = int(os.environ['SLURM_CPUS_PER_TASK']) * 2
     except KeyError:
-        args.num_workers = 40
+        args.num_workers = 1
 
     # Set internal variables from input variables and command-line arguments
     classes = args.classes
