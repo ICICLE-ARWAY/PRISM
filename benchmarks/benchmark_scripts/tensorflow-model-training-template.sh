@@ -8,9 +8,9 @@
 #SBATCH --mem=16G
 #SBATCH --time=04:00:00
 #SBATCH --output=%x.o%A.%a.%N
+#SBATCH --nodes=1
 #SBATCH --array=1-10
 #SBATCH --ntasks=1
-#SBATCH --nodes=1
 
 declare -xir UNIX_TIME="$(date +'%s')"
 declare -xr LOCAL_TIME="$(date +'%Y%m%dT%H%M%S%z')"
