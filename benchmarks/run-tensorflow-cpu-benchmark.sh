@@ -8,7 +8,7 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=16G
-#SBATCH --time=00:30:00
+#SBATCH --time=04:00:00
 #SBATCH --output=%x.o%A.%a.%N
 
 python3 tensorflow-cpu-benchmark.py -l 16
