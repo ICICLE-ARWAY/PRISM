@@ -79,6 +79,6 @@ printenv
 cd "${SLURM_SUBMIT_DIR}"
 
 echo "Running the training script from ${SLURM_SUBMIT_DIR} ..."
-time -p python3 -u torch-model-training.py --classes 10 --precision fp32 --epochs 16 --batch_size 256 --accelerator gpu --saveonnx True
+time -p python3 -u torch-model-training.py --classes 10 --precision fp32 --epochs 1 --batch_size 256 --accelerator gpu --saveonnx True
 
 echo "Job completed"
