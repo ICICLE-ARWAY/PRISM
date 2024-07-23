@@ -3,10 +3,9 @@
 #SBATCH --job-name=run-torch-gpu-benchmark
 #SBATCH --account=ddp324
 #SBATCH --clusters=expanse
-#SBATCH --partition=debug
+#SBATCH --partition=gpu-shared
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=8
 #SBATCH --array=1-10
 #SBATCH --mem=16G
 #SBATCH --gpus=1
