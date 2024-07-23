@@ -8,7 +8,7 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --array=1
 #SBATCH --mem=128G
-#SBATCH --gpus=4
+#SBATCH --gpus=3
 #SBATCH --time=02:00:00
 #SBATCH --output=%x.o%A.%a.%N
 
