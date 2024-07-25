@@ -70,8 +70,8 @@ def create_SDSC_dataset(root, args, dtype):
         )
     
     # map train and test dataset to normalize
-    train_dataset = train_dataset.map(lambda x, y: (x / 255.0, y))
-    test_dataset = test_dataset.map(lambda x, y: (x / 255.0, y))
+    train_dataset = train_dataset.map(lambda x, y: (tf.cast(x, tf.float32) / 255.0, y))
+    test_dataset = test_dataset.map(lambda x, y: (tf.cast(x, tf.float32) / 255.0, y))
 
     # train_dataset = train_dataset.map(lambda x, y: (tf.squeeze(x, axis=0), y))
     # test_dataset = test_dataset.map(lambda x, y: (tf.squeeze(x, axis=0), y))
