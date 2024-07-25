@@ -150,7 +150,7 @@ def create_model(classes, args):
 
         model.compile(
             optimizer=keras.optimizers.Adam(),
-            loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+            loss=keras.losses.CategoricalCrossentropy(from_logits=True),
             metrics=['accuracy'],
         )
 
