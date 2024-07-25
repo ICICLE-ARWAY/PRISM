@@ -4,8 +4,8 @@
 #SBATCH --account=ddp324
 #SBATCH --clusters=expanse
 #SBATCH --partition=gpu-shared
-#SBATCH --gpus-per-task=3
-#SBATCH --mem=32G
+#SBATCH --gpu=3
+#SBATCH --mem=128G
 #SBATCH --time=04:00:00
 #SBATCH --output=%x.o%A.%a.%N
 #SBATCH --nodes=1
