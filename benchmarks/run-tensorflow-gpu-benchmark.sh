@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-#SBATCH --job-name=run-tensorflow-cpu-benchmark
+#SBATCH --job-name=run-tensorflow-gpu-benchmark
 #SBATCH --account=ddp324
 #SBATCH --clusters=expanse
 #SBATCH --partition=gpu-shared

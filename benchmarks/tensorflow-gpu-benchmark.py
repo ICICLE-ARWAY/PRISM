@@ -11,7 +11,7 @@ def get_command_arguments():
     """ Read input variables and parse command-line arguments """
 
     parser = argparse.ArgumentParser(
-        description='Run CPU benchmarks for TensorFlow 2 CNN on an image dataset',
+        description='Run GPU benchmarks for TensorFlow 2 CNN on an image dataset',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     args = parser.parse_args()
@@ -22,21 +22,12 @@ def bprint(output):
     subprocess.call(["echo", str(output)])
 
 
-def create_benchmark(gpus: int, partition: str):
-    templatefile = open("benchmark_scripts/tensorflow-model-gpu-training-template.sh", "r")
-    filecontents = templatefile.read()
-    filecontents = filecontents.replace("[|{GPUS}|]", str(gpus))
-    filecontents = filecontents.replace("[|{PARTITION}|]", partition)
-    open(f"benchmark_scripts/tensorflow-model-gpu-training-{str(gpus)}.sh", "w").write(filecontents)
-
-
-def run_benchmark(gpus, args, partition="shared"):
-    create_benchmark(gpus, partition)
-    script = os.environ["SLURM_SUBMIT_DIR"] + "/benchmark_scripts/tensorflow-gpu-model-training-" + str(gpus) + ".sh"
+def run_benchmark(args, partition="shared"):
+    script = os.environ["SLURM_SUBMIT_DIR"] + "/benchmark_scripts/tensorflow-model-gpu-training.sh"
     process = subprocess.Popen(["sbatch", script])
     while process.poll() is None:
         pass
-    bprint(gpus)
+    bprint("running gpus")
 
 
 def processnames():
@@ -45,7 +36,7 @@ def processnames():
 
 
 def countbmsrunning():
-    return len([m.start() for m in re.finditer("tensorflow-model-training", processnames())])
+    return len([m.start() for m in re.finditer("tensorflow-model-gpu-training", processnames())])
 
 
 def wait_for_benchmark_completion():
@@ -60,7 +51,7 @@ def main():
     if os.path.isfile("benchmarks.log"):
         os.rename("benchmarks.log", f"{str(time.time())}.benchmarks.log")
     args = get_command_arguments()
-    run_benchmark(1, args, partition="gpu")
+    run_benchmark(args, partition="gpu")
     
 
     bprint("Attempted task creation")
