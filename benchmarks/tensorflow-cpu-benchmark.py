@@ -6,7 +6,7 @@ import argparse
 import sys
 import uuid
 
-
+#NOTE: I could not run the 64, since it went over the hours... I will try to run it again later after 1-48 run
 def get_command_arguments():
     """ Read input variables and parse command-line arguments """
 
