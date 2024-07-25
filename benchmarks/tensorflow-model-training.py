@@ -182,7 +182,7 @@ def main():
     train_dataset, test_dataset = create_datasets(classes, args, dtype=tf_float)
 
     # Prepare the datasets for training and evaluation
-    train_dataset = train_dataset.cache().shuffle(buffer_size=50000, reshuffle_each_iteration=True).batch(batch_size)
+    train_dataset = train_dataset.batch(batch_size)
     test_dataset = test_dataset.batch(batch_size)
 
     # Create model
