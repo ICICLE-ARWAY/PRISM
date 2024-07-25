@@ -132,7 +132,7 @@ def create_model(classes, args):
 
     with strategy.scope():
         model = keras.Sequential([
-            keras.layers.InputLayer(input_shape=(32, 32, 3)),
+            keras.layers.InputLayer(input_shape=(192, 128, 3)),
             keras.layers.Conv2D(32, (3, 3), activation='relu'),
             keras.layers.MaxPooling2D((2, 2)),
             keras.layers.Conv2D(64, (3, 3), activation='relu'),
