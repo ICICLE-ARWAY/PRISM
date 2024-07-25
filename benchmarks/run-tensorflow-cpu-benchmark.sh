@@ -11,6 +11,6 @@
 #SBATCH --time=04:00:00
 #SBATCH --output=%x.o%A.%a.%N
 
-python3 tensorflow-cpu-benchmark.py -l 16
+python3 tensorflow-cpu-benchmark.py -l 64
 
 echo "Job completed"
