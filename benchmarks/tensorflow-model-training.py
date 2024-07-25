@@ -69,9 +69,8 @@ def create_SDSC_dataset(root, args, dtype):
             crop_to_aspect_ratio=True
         )
     
-    train_dataset.map(lambda x, y: (tf.squeeze(x, axis=0), y))
-    test_dataset.map(lambda x, y: (tf.squeeze(x, axis=0), y))
-
+    train_dataset = train_dataset.map(lambda x, y: (tf.squeeze(x, axis=0), y))
+    test_dataset = test_dataset.map(lambda x, y: (tf.squeeze(x, axis=0), y))
 
     # train_dataset, testvalds = keras.utils.split_dataset(raw_dataset, left_size=0.7, right_size=0.3)
     # test_dataset, val_dataset = keras.utils.split_dataset(testvalds, left_size=(2 / 3), right_size=(1 / 3))
