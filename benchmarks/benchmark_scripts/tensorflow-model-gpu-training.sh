@@ -38,38 +38,38 @@ module list
 cd "${LOCAL_SCRATCH_DIR}"
 
 md5sum -c "${CONDA_ENV_YAML}.md5"
-if [[ "${?}" -eq 0 ]]; then
+# if [[ "${?}" -eq 0 ]]; then
 
-  echo "Unpacking existing the conda environment to ${LOCAL_SCRATCH_DIR} ..."
-  cp "${CONDA_CACHE_DIR}/${CONDA_ENV_NAME}.tar.gz" ./
-  tar -xf "${CONDA_ENV_NAME}.tar.gz"
-  source bin/activate
-  conda-unpack
+#   echo "Unpacking existing the conda environment to ${LOCAL_SCRATCH_DIR} ..."
+#   cp "${CONDA_CACHE_DIR}/${CONDA_ENV_NAME}.tar.gz" ./
+#   tar -xf "${CONDA_ENV_NAME}.tar.gz"
+#   source bin/activate
+#   conda-unpack
 
-else
+# else
 
-  echo "Installing miniconda to ${LOCAL_SCRATCH_DIR} ..."
-  wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-  chmod +x Miniconda3-latest-Linux-x86_64.sh
-  export CONDA_INSTALL_PATH="${LOCAL_SCRATCH_DIR}/miniconda3"
-  export CONDA_ENVS_PATH="${CONDA_INSTALL_PATH}/envs"
-  export CONDA_PKGS_DIRS="${CONDA_INSTALL_PATH}/pkgs"
-  ./Miniconda3-latest-Linux-x86_64.sh -b -p "${CONDA_INSTALL_PATH}"
+echo "Installing miniconda to ${LOCAL_SCRATCH_DIR} ..."
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+chmod +x Miniconda3-latest-Linux-x86_64.sh
+export CONDA_INSTALL_PATH="${LOCAL_SCRATCH_DIR}/miniconda3"
+export CONDA_ENVS_PATH="${CONDA_INSTALL_PATH}/envs"
+export CONDA_PKGS_DIRS="${CONDA_INSTALL_PATH}/pkgs"
+./Miniconda3-latest-Linux-x86_64.sh -b -p "${CONDA_INSTALL_PATH}"
 
-  echo "Re/building the conda environment from ${CONDA_ENV_YAML} ..."
-  source "${CONDA_INSTALL_PATH}/etc/profile.d/conda.sh"
-  conda activate base
-  conda install -y mamba -n base -c conda-forge
-  mamba env create --file "${CONDA_ENV_YAML}"
-  conda install -y conda-pack
+echo "Re/building the conda environment from ${CONDA_ENV_YAML} ..."
+source "${CONDA_INSTALL_PATH}/etc/profile.d/conda.sh"
+conda activate base
+conda install -y mamba -n base -c conda-forge
+mamba env create --file "${CONDA_ENV_YAML}"
+conda install -y conda-pack
 
-  echo "Packing the conda environment and caching it to ${CONDA_CACHE_DIR} ..."
-  conda pack -n "${CONDA_ENV_NAME}" -o "${CONDA_ENV_NAME}.tar.gz"
-  cp "${CONDA_ENV_NAME}.tar.gz" "${CONDA_CACHE_DIR}"
-  md5sum "${CONDA_ENV_YAML}" > "${CONDA_ENV_YAML}.md5"
-  conda activate "${CONDA_ENV_NAME}"
+echo "Packing the conda environment and caching it to ${CONDA_CACHE_DIR} ..."
+conda pack -n "${CONDA_ENV_NAME}" -o "${CONDA_ENV_NAME}.tar.gz"
+cp "${CONDA_ENV_NAME}.tar.gz" "${CONDA_CACHE_DIR}"
+md5sum "${CONDA_ENV_YAML}" > "${CONDA_ENV_YAML}.md5"
+conda activate "${CONDA_ENV_NAME}"
 
-fi
+# fi
 
 echo "Finalizing the software environment configuration ..."
 export TF_USE_LEGACY_KERAS=1
