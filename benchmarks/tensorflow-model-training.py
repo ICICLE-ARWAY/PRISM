@@ -58,7 +58,7 @@ def create_SDSC_dataset(root, args, dtype):
             labels='inferred',
             label_mode='categorical',
             color_mode='rgb',
-            batch_size=256,
+            batch_size=None,
             image_size=(192, 128),
             shuffle=True,
             seed=6059,
@@ -137,7 +137,7 @@ def create_model(classes, args):
 
     with strategy.scope():
         model = keras.Sequential([
-            # keras.layers.InputLayer(input_shape=(192, 128, 3)),
+            keras.layers.InputLayer(input_shape=(192, 128, 3)),
             keras.layers.Conv2D(32, (3, 3), activation='relu'),
             keras.layers.MaxPooling2D((2, 2)),
             keras.layers.Conv2D(64, (3, 3), activation='relu'),
