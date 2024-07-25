@@ -39,7 +39,7 @@ def wait_for_benchmark_completion():
 def main():
     if os.path.isfile("benchmarks.log"):
         os.rename("benchmarks.log", f"{str(time.time())}.benchmarks.log")
-    run_benchmark(partition="gpu")
+    run_benchmark()
     
 
     bprint("Attempted task creation")
