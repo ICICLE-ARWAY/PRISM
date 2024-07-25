@@ -31,6 +31,7 @@ def create_benchmark(cpus: int, partition: str):
     filecontents = templatefile.read()
     filecontents = filecontents.replace("[|{CPUS}|]", str(cpus))
     filecontents = filecontents.replace("[|{PARTITION}|]", partition)
+    filecontents = filecontents.replace("[|{MEMORY}|]", "32G" if cpus <= 16 else ("64G" if cpus <= 32 else "128GB"))
     open(f"benchmark_scripts/torch-model-training-{str(cpus)}.sh", "w").write(filecontents)
 
 

@@ -185,7 +185,7 @@ def main():
     args = get_command_arguments()
     try:
         if args.num_workers == -1:
-            args.num_workers = int(os.environ['SLURM_CPUS_PER_TASK']) * 2
+            args.num_workers = int(os.environ['SLURM_CPUS_PER_TASK'])
     except KeyError:
         args.num_workers = 16
 

@@ -5,7 +5,7 @@
 #SBATCH --clusters=expanse
 #SBATCH --partition=[|{PARTITION}|]
 #SBATCH --cpus-per-task=[|{CPUS}|]
-#SBATCH --mem=32G
+#SBATCH --mem=[|{MEMORY}|]
 #SBATCH --time=04:00:00
 #SBATCH --output=%x.o%A.%a.%N
 #SBATCH --nodes=1
