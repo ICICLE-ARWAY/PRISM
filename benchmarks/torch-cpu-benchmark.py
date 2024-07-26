@@ -107,32 +107,6 @@ def main():
 
     bprint("All benchmarks completed.")
 
-    # benchmarkdict = {}
-    #
-    # for scriptname in scriptlist:
-    #     plist = [filename for filename in os.listdir('.') if filename.startswith(scriptname)]
-    #     prefixed: str = plist[0]
-    #     file = open(prefixed, "r")
-    #     realnum = -1
-    #     sysnum = -1
-    #     usernum = -1
-    #
-    #     for line in file:
-    #         if line.find("real ") != -1:
-    #             realnum = float(line.replace("real ", "").replace("\n", ""))
-    #         if line.find("sys ") != -1:
-    #             sysnum = float(line.replace("sys ", "").replace("\n", ""))
-    #         if line.find("user ") != -1:
-    #             usernum = float(line.replace("user ", "").replace("\n", ""))
-    #     if realnum != -1 and sysnum != -1 and usernum != -1:
-    #         benchmarkdict[prefixed] = [realnum, sysnum, usernum]
-    #
-    # bprint(benchmarkdict)
-    # outfile = open(str(uuid.uuid4()) + ".csv", "w")
-    # outfile.writelines(f"cores,real,sys,user\n")
-    # for n in benchmarkdict.keys():
-    #     outfile.writelines(f"{n},{benchmarkdict[n][0]},{benchmarkdict[n][1]},{benchmarkdict[n][2]}\n")
-
     return 0
 
 
