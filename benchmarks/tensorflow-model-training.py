@@ -53,25 +53,31 @@ def create_SDSC_dataset(root, args, dtype):
     else: # channels == 4
         color_mode = 'rgba'
     
-    # raw_dataset = keras.utils.image_dataset_from_directory(root, labels='inferred')
-    raw_dataset = keras.preprocessing.image_dataset_from_directory(
+    train_dataset, test_dataset = keras.utils.image_dataset_from_directory(
             directory=root,
             labels='inferred',
             label_mode='categorical',
             color_mode='rgb',
-            batch_size=256,
+            batch_size=None,
             image_size=(192, 128),
             shuffle=True,
             seed=6059,
-            validation_split=0,
-            subset="training",
+            validation_split=0.3,
+            subset="both",
             interpolation='bilinear',
             follow_links=False,
             crop_to_aspect_ratio=True
         )
+    
+    # map train and test dataset to normalize
+    train_dataset = train_dataset.map(lambda x, y: (tf.cast(x, tf.float32) / 255.0, y))
+    test_dataset = test_dataset.map(lambda x, y: (tf.cast(x, tf.float32) / 255.0, y))
 
-    train_dataset, testvalds = keras.utils.split_dataset(raw_dataset, left_size=0.7, right_size=0.3)
-    test_dataset, val_dataset = keras.utils.split_dataset(testvalds, left_size=(2 / 3), right_size=(1 / 3))
+    # train_dataset = train_dataset.map(lambda x, y: (tf.squeeze(x, axis=0), y))
+    # test_dataset = test_dataset.map(lambda x, y: (tf.squeeze(x, axis=0), y))
+
+    # train_dataset, testvalds = keras.utils.split_dataset(raw_dataset, left_size=0.7, right_size=0.3)
+    # test_dataset, val_dataset = keras.utils.split_dataset(testvalds, left_size=(2 / 3), right_size=(1 / 3))
 
     return train_dataset, test_dataset
 
@@ -131,7 +137,7 @@ def create_model(classes, args):
 
     with strategy.scope():
         model = keras.Sequential([
-            keras.layers.InputLayer(input_shape=(32, 32, 3)),
+            keras.layers.InputLayer(input_shape=(192, 128, 3)),
             keras.layers.Conv2D(32, (3, 3), activation='relu'),
             keras.layers.MaxPooling2D((2, 2)),
             keras.layers.Conv2D(64, (3, 3), activation='relu'),
@@ -176,7 +182,7 @@ def main():
     train_dataset, test_dataset = create_datasets(classes, args, dtype=tf_float)
 
     # Prepare the datasets for training and evaluation
-    train_dataset = train_dataset.cache().shuffle(buffer_size=50000, reshuffle_each_iteration=True).batch(batch_size)
+    train_dataset = train_dataset.batch(batch_size)
     test_dataset = test_dataset.batch(batch_size)
 
     # Create model

@@ -6,7 +6,6 @@ import argparse
 import sys
 import uuid
 
-
 def get_command_arguments():
     """ Read input variables and parse command-line arguments """
 
@@ -31,6 +30,7 @@ def create_benchmark(cpus: int, partition: str):
     filecontents = templatefile.read()
     filecontents = filecontents.replace("[|{CPUS}|]", str(cpus))
     filecontents = filecontents.replace("[|{PARTITION}|]", partition)
+    filecontents = filecontents.replace("[|{MEMORY}|]", "64G" if cpus <= 16 else  "128GB")
     open(f"benchmark_scripts/tensorflow-model-training-{str(cpus)}.sh", "w").write(filecontents)
 
 
@@ -68,22 +68,22 @@ def main():
     args = get_command_arguments()
     max_cpus_per_task = args.max_cpus_per_task
     tasksRun = 0
-    run_benchmark(1, args)
+    run_benchmark(64, args)
     tasksRun += 1
-    run_benchmark(2, args)
-    tasksRun += 1
-    run_benchmark(4, args)
-    tasksRun += 1
-    run_benchmark(8, args)
-    tasksRun += 1
-    cpus = 16
-    while cpus < max_cpus_per_task and cpus <= args.cpu_benchmark_limit:
-        run_benchmark(cpus, args)
-        tasksRun += 1
-        cpus += 16
-    if cpus == max_cpus_per_task:
-        run_benchmark(cpus, args, partition="compute")
-        tasksRun += 1
+    # run_benchmark(2, args)
+    # tasksRun += 1
+    # run_benchmark(4, args)
+    # tasksRun += 1
+    # run_benchmark(8, args)
+    # tasksRun += 1
+    # cpus = 16
+    # while cpus < max_cpus_per_task and cpus <= args.cpu_benchmark_limit:
+    #     run_benchmark(cpus, args)
+    #     tasksRun += 1
+    #     cpus += 16
+    # if cpus == max_cpus_per_task:
+    #     run_benchmark(cpus, args, partition="compute")
+    #     tasksRun += 1
 
     bprint("Attempted task creation")
 
@@ -105,33 +105,6 @@ def main():
     wait_for_benchmark_completion()
 
     bprint("All benchmarks completed.")
-
-    #     benchmarkdict = {}
-
-    #     for scriptname in scriptlist:
-    #         plist = [filename for filename in os.listdir('.') if filename.startswith(scriptname)]
-    #         prefixed: str = plist[0]
-    #         file = open(prefixed, "r")
-    #         realnum = -1
-    #         sysnum = -1
-    #         usernum = -1
-    #
-    #         for line in file:
-    #             if line.find("real ") != -1:
-    #                 realnum = float(line.replace("real ", "").replace("\n", ""))
-    #             if line.find("sys ") != -1:
-    #                 sysnum = float(line.replace("sys ", "").replace("\n", ""))
-    #             if line.find("user ") != -1:
-    #                 usernum = float(line.replace("user ", "").replace("\n", ""))
-    #         if realnum != -1 and sysnum != -1 and usernum != -1:
-    #             benchmarkdict[prefixed] = [realnum, sysnum, usernum]
-    #
-    #     bprint(benchmarkdict)
-    #     outfile = open(str(uuid.uuid4()) + ".csv", "w")
-    #     outfile.writelines(f"cores,real,sys,user\n")
-    #     for n in benchmarkdict.keys():
-    #         outfile.writelines(f"{n},{benchmarkdict[n][0]},{benchmarkdict[n][1]},{benchmarkdict[n][2]}\n")
-    #     outfile.flush()
 
     return 0
 
