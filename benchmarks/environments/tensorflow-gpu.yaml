@@ -9,7 +9,7 @@ dependencies:
   - jupyterlab
   - opencv
   - onnx
-  - onnxruntime
   - pip:
+      - onnxruntime-gpu --extra-index-url https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/onnxruntime-cuda-12/pypi/simple/
       - onnxscript
       - tf2onnx
