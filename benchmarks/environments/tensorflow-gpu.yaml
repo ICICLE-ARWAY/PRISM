@@ -5,11 +5,14 @@ channels:
   - conda-forge
 
 dependencies:
-  - tensorflow==2.16.1==cuda120py312hee4d333_0
+  # - tensorflow==2.16.1==cuda120py312hee4d333_0
+  - tensorflow-gpu
+  - cudnn
+  - cudatoolkit
   - jupyterlab
   - opencv
-  - onnx
   - pip:
+      - onnx
       - onnxruntime-gpu --extra-index-url https://aiinfra.pkgs.visualstudio.com/PublicPackages/_packaging/onnxruntime-cuda-12/pypi/simple/
       - onnxscript
       - tf2onnx
