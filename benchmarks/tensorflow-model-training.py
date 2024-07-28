@@ -162,8 +162,11 @@ def main():
 
     # Read input variables and parse command-line arguments
     args = get_command_arguments()
-    if args.num_workers == -1:
-        args.num_workers = int(os.environ['SLURM_CPUS_PER_TASK']) * 2
+    try:
+        if args.num_workers == -1:
+            args.num_workers = int(os.environ['SLURM_CPUS_PER_TASK']) * 2
+    except KeyError:
+        pass
 
     # Set internal variables from input variables and command-line arguments
     classes = args.classes
