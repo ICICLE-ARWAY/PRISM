@@ -6,10 +6,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Location of data
-DATA_CSV_LOCATION = "./graphs/data.csv"
+DESIRED_MODEL = "Pytorch"
+DATA_CSV_LOCATION = f"./graphs/{DESIRED_MODEL.lower()}-data.csv"
 
 # Setting desired graph
-X_AXIS = "Cores"
+X_AXIS = "Speedup"
 Y_AXIS = "Duration (s)"
 
 csvreader = open(DATA_CSV_LOCATION, newline='')
@@ -37,7 +38,7 @@ ypoints = np.array(ypoints)
 
 time.sleep(0)
 plt.plot(xpoints, ypoints)
-plt.title(f"{X_AXIS} vs. {Y_AXIS}")
+plt.title(f"{DESIRED_MODEL}: {Y_AXIS} vs. {X_AXIS}")
 plt.ylabel(Y_AXIS)
 plt.xlabel(X_AXIS)
 plt.show()
