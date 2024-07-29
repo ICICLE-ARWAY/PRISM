@@ -6,9 +6,9 @@ channels:
 
 dependencies:
   - tensorflow==2.16.1==cuda120py312hee4d333_0
-  # - tensorflow-gpu
-  # - cudnn
-  # - cudatoolkit
+  - tensorflow-gpu
+  - cudnn
+  - cudatoolkit
   - jupyterlab
   - opencv
   - pip:
