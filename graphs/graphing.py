@@ -6,11 +6,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Location of data
-DESIRED_MODEL = "Pytorch"
+DESIRED_MODEL = "Tensorflow"
 DATA_CSV_LOCATION = f"./graphs/{DESIRED_MODEL.lower()}-data.csv"
 
 # Setting desired graph
-X_AXIS = "Speedup"
+X_AXIS = "Cores"
 Y_AXIS = "Duration (s)"
 
 csvreader = open(DATA_CSV_LOCATION, newline='')
